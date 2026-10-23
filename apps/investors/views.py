@@ -1,10 +1,13 @@
-from django.shortcuts import render, redirect, get_object_or_404 # Idinagdag ang get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
+
 from .models import Investor
 from .forms import InvestorForm
+from apps.investments.forms import InvestmentForm 
+from apps.investments.models import Investment 
 
 @login_required(login_url='login')
 def dashboard(request):
@@ -21,16 +24,34 @@ def dashboard(request):
         'query': query,
     })
 
+
 @login_required(login_url='login')
 def investor_create(request):
-    form = InvestorForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        investor = form.save()
-        messages.success(request, f'Investor "{investor.name}" created successfully.')
-        return redirect('investors:dashboard')
+    if request.method == 'POST':
+        investor_form = InvestorForm(request.POST)
+        investment_form = InvestmentForm(request.POST) 
+
+        if investor_form.is_valid() and investment_form.is_valid():
+            # 1. Save the new Investor
+            investor = investor_form.save()
+            
+            # 2. Save the Investment and link it to the new Investor
+            investment = investment_form.save(commit=False)
+            investment.investor = investor
+            investment.save()
+
+            messages.success(request, f'Investor "{investor.name}" and their Investment were created successfully.')
+            return redirect('investments:investment_list') 
+    else:
+        investor_form = InvestorForm()
+        investment_form = InvestmentForm()
+
     return render(request, 'investors/investor_form.html', {
-        'form': form, 'title': 'Add Investor',
+        'form': investor_form,
+        'investment_form': investment_form,
+        'title': 'Add Investor & Initial Investment',
     })
+
 
 @login_required(login_url='login')
 def investor_update(request, pk):
@@ -43,6 +64,7 @@ def investor_update(request, pk):
     return render(request, 'investors/investor_form.html', {
         'form': form, 'title': 'Edit Investor',
     })
+
 
 @login_required(login_url='login')
 def investor_delete(request, pk):

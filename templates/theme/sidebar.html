@@ -1,5 +1,6 @@
 <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark dh-sidebar">
   <div class="container-fluid">
+    <!-- LOGO -->
     <div class="navbar-brand navbar-brand-autodark dh-brand">
       <a href="{% url 'campaigns:dashboard' %}" class="d-flex align-items-center gap-2 text-decoration-none">
         <span class="dh-brand-mark"><i class="fa-solid fa-shield-halved"></i></span>
@@ -9,9 +10,18 @@
         </span>
       </a>
     </div>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-controls="sidebar-menu" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
     <div class="collapse navbar-collapse" id="sidebar-menu">
       <ul class="navbar-nav pt-lg-2 py-lg-2">
-        <li class="nav-item"><span class="dh-nav-section">Menu</span></li>
+        
+        <li class="nav-item">
+          <span class="dh-nav-section">Menu</span>
+        </li>
+        
         <li class="nav-item mb-1">
           <a class="nav-link" href="{% url 'campaigns:dashboard' %}">
             <span class="nav-link-icon"><i class="fa fa-dashboard text-white"></i></span>
@@ -48,6 +58,8 @@
             <span class="nav-link-title">Info</span>
           </a>
         </li>
+
+        <!-- USER CARD SA IBABA -->
         <li class="nav-item mt-auto dh-nav-sidebar-footer">
           <div class="dh-user-card">
             <a href="#" class="d-flex align-items-center gap-2 text-decoration-none text-white min-w-0 w-100">

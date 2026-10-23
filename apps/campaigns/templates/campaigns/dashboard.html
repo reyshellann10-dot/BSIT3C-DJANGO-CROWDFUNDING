@@ -2,64 +2,128 @@
 {% load static %}
 
 {% block content %}
+<!-- Custom CSS for Dark Theme -->
+<style>
+    .card-custom {
+        background-color: #1e293b;
+        border-radius: 12px;
+        border: 1px solid #334155;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        color: #e2e8f0;
+    }
+    .welcome-banner {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        border-radius: 12px;
+        padding: 20px;
+        color: white;
+        border: 1px solid #475569;
+    }
+    .icon-box {
+        width: 50px; height: 50px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 24px;
+    }
+    .bg-purple-lt { background-color: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+    .bg-green-lt { background-color: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .bg-orange-lt { background-color: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .bg-blue-lt { background-color: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+</style>
+
+<!-- 1. WELCOME BANNER -->
+<div class="welcome-banner mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <h3 class="mb-1 text-white">Welcome back to <span class="text-warning">Crowdfunding</span>!</h3>
+        <p class="text-muted mb-0">Here is the latest overview of your system.</p>
+    </div>
+    <div>
+        <i class="fas fa-chart-line fa-3x text-primary"></i>
+    </div>
+</div>
+
+<!-- 2. STATS CARDS -->
+<div class="row row-deck row-cards mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-custom p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted text-uppercase small fw-bold">Total Projects</div>
+                    <div class="h1 mb-0 fw-bold text-white">{{ total_projects }}</div>
+                </div>
+                <div class="icon-box bg-purple-lt"><i class="fas fa-folder"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-custom p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted text-uppercase small fw-bold">Total Investors</div>
+                    <div class="h1 mb-0 fw-bold text-white">{{ total_investors }}</div>
+                </div>
+                <div class="icon-box bg-green-lt"><i class="fas fa-users"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-custom p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted text-uppercase small fw-bold">Total Investments</div>
+                    <div class="h1 mb-0 fw-bold text-white">{{ total_investments }}</div>
+                </div>
+                <div class="icon-box bg-orange-lt"><i class="fas fa-coins"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-custom p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted text-uppercase small fw-bold">Funds Raised</div>
+                    <!-- FORMAT: ₱12,303,000.00 (May comma) -->
+                    <div class="h1 mb-0 fw-bold text-white">₱{{ total_amount|floatformat:"2g" }}</div>
+                </div>
+                <div class="icon-box bg-blue-lt"><i class="fas fa-wallet"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. CHARTS SECTION -->
+<div class="row mb-4">
+    <!-- Bar Chart -->
+    <div class="col-lg-8">
+        <div class="card card-custom h-100">
+            <div class="card-body">
+                <h4 class="card-title text-white mb-4">Monthly Investments</h4>
+                <canvas id="barChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+    <!-- Pie Chart -->
+    <div class="col-lg-4">
+        <div class="card card-custom h-100">
+            <div class="card-body text-center">
+                <h4 class="card-title text-white mb-4">Project Status</h4>
+                <canvas id="pieChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. RECENT PROJECTS TABLE -->
 <div class="row">
     <div class="col-md-12">
-        <div class="page-title">Overview</div>
-        <h2 class="page-title">Crowdfunding Dashboard</h2>
-    </div>
-</div>
-
-<!-- Stats Cards -->
-<div class="row row-cards mt-2">
-    <div class="col-sm-6 col-lg-3">
-        <div class="card">
-            <div class="card-body">
-                <div class="subheader">Total Investors</div>
-                <div class="h1">{{ total_investors }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="card">
-            <div class="card-body">
-                <div class="subheader">Total Projects</div>
-                <div class="h1">{{ total_projects }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="card">
-            <div class="card-body">
-                <div class="subheader">Total Investments</div>
-                <div class="h1">{{ total_investments }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="card">
-            <div class="card-body">
-                <div class="subheader">Total Amount</div>
-                <div class="h1">₱{{ total_amount }}</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Recent Projects -->
-<div class="row mt-3">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Recent Projects</h3>
+        <div class="card card-custom">
+            <div class="card-header border-0">
+                <h3 class="card-title text-white">Recent Projects</h3>
             </div>
             <div class="table-responsive">
-                <table class="table table-vcenter card-table">
+                <table class="table table-dark table-hover card-table mb-0">
                     <thead>
                         <tr>
-                            <th>Image</th>
-                            <th>Title</th>
-                            <th>Target Amount</th>
-                            <th>Status</th>
+                            <th>Image</th><th>Title</th><th>Target</th><th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -67,18 +131,14 @@
                         <tr>
                             <td>
                                 {% if project.image %}
-                                    <img src="{{ project.image.url }}" alt="{{ project.title }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+                                <img src="{{ project.image.url }}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 5px;">
                                 {% else %}
-                                    <span class="text-muted">No Image</span>
+                                <span class="text-muted">No Image</span>
                                 {% endif %}
                             </td>
-                            <td>{{ project.title }}</td>
+                            <td class="fw-bold">{{ project.title }}</td>
                             <td>₱{{ project.target_amount }}</td>
-                            <td>{{ project.status }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="text-center">No projects found.</td>
+                            <td><span class="badge bg-primary">{{ project.status|title }}</span></td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -88,42 +148,84 @@
     </div>
 </div>
 
-<!-- RECENT INVESTMENTS (Para makita ang Shares at Profit) -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Recent Investments (Shares & Profit)</h3>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-vcenter card-table">
-                    <thead>
-                        <tr>
-                            <th>Investor</th>
-                            <th>Project</th>
-                            <th>Amount Invested</th>
-                            <th>Shares</th>
-                            <th>Profit (Ginansya)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for inv in recent_investments %}
-                        <tr>
-                            <td>{{ inv.investor.name }}</td>
-                            <td>{{ inv.project.title }}</td>
-                            <td>₱{{ inv.amount }}</td>
-                            <td>{{ inv.shares }}</td>
-                            <td class="text-success fw-bold">₱{{ inv.profit }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center">No investments yet.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- CHART.JS SCRIPT -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // 1. Bar Chart (Monthly Investments)
+    const barCtx = document.getElementById('barChart');
+    const chartLabels = JSON.parse('{{ chart_labels|safe }}');
+    const chartAmounts = JSON.parse('{{ chart_amounts|safe }}');
+
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: chartLabels.length ? chartLabels : ['No Data'],
+            datasets: [{
+                label: 'Investments',
+                data: chartAmounts.length ? chartAmounts : [0],
+                backgroundColor: '#6366f1', // Indigo Blue
+                borderRadius: 6,
+                barThickness: 40
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let value = context.raw || 0;
+                            // Ipapakita ang buong number sa tooltip kapag tinapat ang mouse
+                            return '₱' + value.toLocaleString(); 
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: { 
+                    beginAtZero: true, 
+                    grid: { color: '#334155' }, 
+                    ticks: { 
+                        color: '#94a3b8',
+                        callback: function(value) {
+                            // IDINAGDAG NATIN ITO: Gagawing "K" o "M" ang mga malalaking numero
+                            if (value >= 1000000) return '₱' + (value / 1000000) + 'M';
+                            if (value >= 1000) return '₱' + (value / 1000) + 'K';
+                            return '₱' + value;
+                        }
+                    } 
+                },
+                x: { 
+                    grid: { display: false }, 
+                    ticks: { color: '#94a3b8' } 
+                }
+            }
+        }
+    });
+
+    // 2. Pie Chart (Project Status)
+    const pieCtx = document.getElementById('pieChart');
+    const statusLabels = JSON.parse('{{ status_labels|safe }}');
+    const statusCounts = JSON.parse('{{ status_counts|safe }}');
+
+    new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+            labels: statusLabels.length ? statusLabels : ['No Projects'],
+            datasets: [{
+                data: statusCounts.length ? statusCounts : [1],
+                backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '75%',
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#94a3b8', usePointStyle: true, padding: 20 } }
+            }
+        }
+    });
+</script>
 {% endblock %}
