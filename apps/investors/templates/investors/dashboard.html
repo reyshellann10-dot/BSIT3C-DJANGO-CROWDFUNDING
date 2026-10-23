@@ -1,0 +1,78 @@
+{% extends 'theme/base.html' %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Investors List</h2>
+    <a href="{% url 'investors:investor_create' %}" class="btn btn-primary">+ Add Investor</a>
+</div>
+
+<!-- SEARCH BAR -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" class="d-flex">
+            <input type="text" name="q" class="form-control me-2" placeholder="Search by name or contact..." value="{{ query }}">
+            <button type="submit" class="btn btn-success">Search</button>
+        </form>
+    </div>
+</div>
+
+<!-- INVESTORS TABLE -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-vcenter">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Contact</th>
+                        <th>Address</th>
+                        <th>Date Joined</th>
+                        <th>Actions</th> <!-- IDINAGDAG ANG HEADER PARA SA BUTTONS -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for investor in investors %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td class="fw-bold">{{ investor.name }}</td>
+                        <td>{{ investor.contact|default:"-" }}</td>
+                        <td>{{ investor.address|default:"-"|truncatechars:30 }}</td>
+                        <td>{{ investor.created_at|date:"M d, Y" }}</td>
+                        
+                        <!-- IDINAGDAG ANG ACTIONS DITO SA LOOB NG ROW -->
+                        <td>
+                            <a href="{% url 'investors:investor_update' investor.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                            
+                            <form action="{% url 'investors:investor_delete' investor.pk %}" method="POST" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this investor?')">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No investors found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- PAGINATION -->
+        {% if investors.has_other_pages %}
+        <div class="d-flex justify-content-center mt-3">
+            <ul class="pagination">
+                {% if investors.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ investors.previous_page_number }}">&laquo;</a></li>
+                {% endif %}
+                <li class="page-item active"><span class="page-link">{{ investors.number }}</span></li>
+                {% if investors.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ investors.next_page_number }}">&raquo;</a></li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

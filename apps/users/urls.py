@@ -11,4 +11,5 @@ urlpatterns = [
     path('ajax/get/<int:pk>/', views.user_get_ajax, name='user_get_ajax'),
     path('ajax/save/', views.user_save_ajax, name='user_save_ajax'),
     path('ajax/delete/<int:pk>/', views.user_delete_ajax, name='user_delete_ajax'),
+    
 ]

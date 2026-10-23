@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
   <title>
-    Sign in - Azuelo Technology
+    Sign in - Crowd Funding
   </title>
   <link href="{% static 'libs/jsvectormap/dist/jsvectormap.css' %}" rel="stylesheet" />
   <link href="{% static 'css/tabler.css' %}" rel="stylesheet" />
@@ -36,11 +36,11 @@
           {% csrf_token %}
 
           {% if messages %}
-          {% for message in messages %}
           <div id="error-message" class="alert alert-danger">
-            {{ message }}
+            {% for message in messages %}
+            {{ message }}<br>
+            {% endfor %}
           </div>
-          {% endfor %}
           {% endif %}
           <div class="mb-3">
             <label class="form-label">Username</label>
@@ -71,89 +71,32 @@
 
 {% include 'theme/settings.html' %}
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{% static 'js/tabler.js' %}" defer></script>
-<script src="{% static 'js/demo.js' %}" defer></script>
 {% if locked %}
 <script>
   let remaining = {{ remaining }};
   const messageBox = document.getElementById("error-message");
 
-  let interval = setInterval(function() {
-    remaining--;
+  if (messageBox) {
+    let interval = setInterval(function() {
+      remaining--;
 
-    if (remaining > 0) {
-      messageBox.innerHTML =
-      "Too many failed attempts. Try again in " + remaining + " seconds.";
-    } else {
-      clearInterval(interval);
+      if (remaining > 0) {
+        messageBox.innerHTML =
+        "Too many failed attempts. Try again in " + remaining + " seconds.";
+      } else {
+        clearInterval(interval);
+        window.location.href = "{% url 'login' %}";
+      }
+
+    }, 1000);
+  } else {
+    setTimeout(function() {
       window.location.href = "{% url 'login' %}";
-    }
-
-  }, 1000);
+    }, {{ remaining }} * 1000);
+  }
 </script>
 {% endif %}
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    var themeConfig = {
-      theme: "light",
-      "theme-base": "gray",
-      "theme-font": "sans-serif",
-      "theme-primary": "blue",
-      "theme-radius": "1",
-    };
-
-    var url = new URL(window.location);
-    var form = document.getElementById("offcanvasSettings");
-    var resetButton = document.getElementById("reset-changes");
-
-    var checkItems = function () {
-      for (var key in themeConfig) {
-        var value =
-        window.localStorage["tabler-" + key] || themeConfig[key];
-
-        if (!!value) {
-          var radios = form.querySelectorAll(`[name="${key}"]`);
-
-          if (!!radios) {
-            radios.forEach((radio) => {
-              radio.checked = radio.value === value;
-            });
-          }
-        }
-      }
-    };
-
-    form.addEventListener("change", function (event) {
-      var target = event.target,
-      name = target.name,
-      value = target.value;
-
-      for (var key in themeConfig) {
-        if (name === key) {
-          document.documentElement.setAttribute("data-bs-" + key, value);
-          window.localStorage.setItem("tabler-" + key, value);
-          url.searchParams.set(key, value);
-        }
-      }
-
-      window.history.pushState({}, "", url);
-    });
-
-    resetButton.addEventListener("click", function () {
-      for (var key in themeConfig) {
-        var value = themeConfig[key];
-        document.documentElement.removeAttribute("data-bs-" + key);
-        window.localStorage.removeItem("tabler-" + key);
-        url.searchParams.delete(key);
-      }
-
-      checkItems();
-
-      window.history.pushState({}, "", url);
-    });
-
-    checkItems();
-  });
-</script>
 </body>
 </html>

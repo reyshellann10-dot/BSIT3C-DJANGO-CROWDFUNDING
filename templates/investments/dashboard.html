@@ -1,0 +1,45 @@
+{% extends 'theme/base.html' %}
+{% block content %}
+<h2 class="mb-4">Investments Dashboard</h2>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h3>Total Investments: {{ total_investments }}</h3>
+        <h3>Total Amount: ₱{{ total_amount }}</h3>
+    </div>
+</div>
+
+<!-- TABLE PARA MAKITA ANG DETAILYE -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Investor</th>
+                        <th>Project</th>
+                        <th>Amount</th>
+                        <th>Shares</th>
+                        <th>Profit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in investments %}
+                    <tr>
+                        <td>{{ inv.investor.name }}</td>
+                        <td>{{ inv.project.title }}</td>
+                        <td>₱{{ inv.amount }}</td>
+                        <td>{{ inv.shares }}</td>
+                        <td class="text-success fw-bold">₱{{ inv.profit }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No investments found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'theme/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="card mt-4">
+            <div class="card-header">
+                <h3 class="card-title">{{ title }}</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <!-- Ito ang maglalabas ng form fields (Name, Contact, Address) -->
+                    {{ form.as_p }}
+                    
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-success">Save Investor</button>
+                        <a href="{% url 'investors:dashboard' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

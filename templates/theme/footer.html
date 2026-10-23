@@ -5,8 +5,9 @@
       <div class="col-lg-auto ms-lg-auto">
         <ul class="list-inline list-inline-dots mb-0">
           <li class="list-inline-item">
-            <a href="{% url 'dashboard' %}" class="link-secondary text-decoration-none">
-              <i class="fas fa-shield-halved me-1"></i> ProjectV3
+            <!-- INAYOS NATIN ITO: Nilagyan ng 'campaigns:' -->
+            <a href="{% url 'campaigns:dashboard' %}" class="link-secondary text-decoration-none">
+              <i class="fas fa-shield-halved me-1"></i> Crowdfunding V3
             </a>
           </li>
         </ul>
@@ -15,7 +16,7 @@
         <ul class="list-inline list-inline-dots mb-0">
           <li class="list-inline-item">
             Copyright &copy; 2026
-            <a href="." class="link-secondary text-decoration-none">Azuelo Technology</a>. All rights reserved.
+            <a href="{% url 'campaigns:dashboard' %}" class="link-secondary text-decoration-none">Crowd Funding</a>. All rights reserved.
           </li>
         </ul>
       </div>

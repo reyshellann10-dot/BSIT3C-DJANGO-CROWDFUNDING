@@ -101,75 +101,64 @@ def _validate_registration_data(data):
 
 @require_http_methods(['GET', 'POST'])
 def login_view(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-
-    failed_attempts, remaining = _get_lock_state(request)
-    if remaining is not None:
-        messages.error(request, f'Too many failed attempts. Try again in {remaining} seconds.')
-        return render(request, 'auth/login.html', {'locked': True, 'remaining': remaining})
-
-    if request.method == 'GET':
-        return render(request, 'auth/login.html')
-
-    username = request.POST.get('username', '').strip()
-    password = request.POST.get('password', '')
-    user = authenticate(request, username=username, password=password)
-
-    if user is not None:
-        _reset_lock_state(request)
-        login(request, user)
-        return redirect('dashboard')
-
-    failed_attempts += 1
-    request.session['failed_attempts'] = failed_attempts
-    if failed_attempts >= MAX_FAILED_ATTEMPTS:
-        remaining = _set_lock_state(request)
+    # 1. Check kung naka-lock ang user
+    failed_attempts, remaining_lock = _get_lock_state(request)
+    if remaining_lock:
         messages.error(request, LOCKED_MESSAGE)
-        return render(request, 'auth/login.html', {'locked': True, 'remaining': remaining})
+        return render(request, 'auth/login.html', {'lock_remaining': remaining_lock})
 
-    remaining_attempts = MAX_FAILED_ATTEMPTS - failed_attempts
-    messages.error(request, f'{INVALID_LOGIN_MESSAGE} {remaining_attempts} attempts remaining.')
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            # Successful login
+            login(request, user)
+            _reset_lock_state(request)
+            # Dito natin binago, diretso na sa campaigns imbes na crowdfunding
+            return redirect('/campaigns/') 
+        else:
+            # Failed login attempt
+            failed_attempts += 1
+            request.session['failed_attempts'] = failed_attempts
+            if failed_attempts >= MAX_FAILED_ATTEMPTS:
+                remaining = _set_lock_state(request)
+                messages.error(request, LOCKED_MESSAGE)
+                return render(request, 'auth/login.html', {'lock_remaining': remaining})
+            else:
+                messages.error(request, INVALID_LOGIN_MESSAGE)
+                return render(request, 'auth/login.html')
+
     return render(request, 'auth/login.html')
-
-
-def logout_view(request):
-    logout(request)
-    return redirect('login')
-
-
-@login_required(login_url='login')
-def home(request):
-    return render(request, 'home.html')
 
 
 @require_http_methods(['GET', 'POST'])
 def register_view(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard')
+    if request.method == 'POST':
+        errors = _validate_registration_data(request.POST)
+        if not errors:
+            user = User.objects.create_user(
+                username=request.POST.get('username'),
+                email=request.POST.get('email'),
+                password=request.POST.get('password'),
+                first_name=request.POST.get('first_name'),
+                last_name=request.POST.get('last_name')
+            )
+            login(request, user)
+            return redirect('/campaigns/')
+        else:
+            return render(request, 'auth/register.html', {'errors': errors, 'data': request.POST})
+            
+    return render(request, 'auth/register.html')
 
-    if request.method == 'GET':
-        return render(request, 'auth/register.html')
 
-    form_data = {
-        'username': request.POST.get('username', ''),
-        'first_name': request.POST.get('first_name', ''),
-        'last_name': request.POST.get('last_name', ''),
-        'email': request.POST.get('email', ''),
-        'password': request.POST.get('password', ''),
-        'confirm_password': request.POST.get('confirm_password', ''),
-    }
+@require_http_methods(['GET', 'POST'])
+def logout_view(request):
+    logout(request)
+    return redirect('/login/')
 
-    errors = _validate_registration_data(form_data)
-    if errors:
-        return render(request, 'auth/register.html', {'errors': errors, 'form_data': form_data})
 
-    user = User.objects.create_user(
-        username=form_data['username'].strip(),
-        first_name=form_data['first_name'].strip(),
-        last_name=form_data['last_name'].strip(),
-        email=form_data['email'].strip(),
-        password=form_data['password'],
-    )
-    login(request, user)
-    return redirect('dashboard')
+@login_required
+def home(request):
+    return redirect('/campaigns/')

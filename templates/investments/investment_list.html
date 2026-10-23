@@ -1,0 +1,74 @@
+{% extends 'theme/base.html' %}
+{% block content %}
+
+<div class="row align-items-center mb-3">
+    <div class="col">
+        <span class="text-uppercase text-muted fw-bold" style="font-size: 11px;">Overview</span>
+        <h2 class="mb-0">Investment Management</h2>
+    </div>
+</div>
+
+<!-- SEARCH BAR -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="GET" class="d-flex w-50">
+            <input type="text" name="q" class="form-control me-2" placeholder="Search by investor or project..." value="{{ request.GET.q }}">
+            <button type="submit" class="btn btn-success">Search</button>
+        </form>
+    </div>
+</div>
+
+<!-- TABLE -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">All Investments</h3>
+        <a href="{% url 'investments:investment_create' %}" class="btn btn-success btn-sm">+ Add Investment</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-vcenter table-hover card-table mb-0">
+                <thead>
+                    <tr>
+                        <th class="w-1">#</th>
+                        <th>Investor</th>
+                        <th>Project</th>
+                        <th>Amount</th>
+                        <th>Shares</th>
+                        <th>Profit</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in investments %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td class="fw-bold">{{ inv.investor.name }}</td>
+                        <td>{{ inv.project.title }}</td>
+                        <td>₱{{ inv.amount }}</td>
+                        <td>{{ inv.shares }}</td>
+                        <td class="text-success">₱{{ inv.profit }}</td>
+                        
+                        <!-- ACTIONS (ICONS LANG) -->
+                        <td class="text-end">
+                            <a href="{% url 'investments:investment_update' inv.pk %}" class="text-warning me-2" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form action="{% url 'investments:investment_delete' inv.pk %}" method="POST" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link p-0 text-danger" onclick="return confirm('Delete this investment?')" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">No investments found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

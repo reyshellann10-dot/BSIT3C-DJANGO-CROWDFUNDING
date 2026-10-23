@@ -160,3 +160,73 @@ def user_delete_ajax(request, pk):
         "status": "deleted",
         "message": f'User "{username}" has been deleted successfully.',
     })
+
+    from django.http import JsonResponse
+from django.contrib.auth.models import User
+from django.views.decorators.http import require_POST
+
+@require_POST
+def user_save_ajax(request):
+    # Kunin ang data mula sa form
+    user_id = request.POST.get('id')
+    username = request.POST.get('username')
+    password = request.POST.get('password')
+    first_name = request.POST.get('first_name')
+    last_name = request.POST.get('last_name')
+    email = request.POST.get('email')
+    is_active = request.POST.get('is_active') == 'true'
+    is_staff = request.POST.get('is_staff') == 'true'
+
+    if not username:
+        return JsonResponse({'error': 'Username is required.'}, status=400)
+
+    try:
+        if user_id:
+            # UPDATE (Edit)
+            user = User.objects.get(pk=user_id)
+            user.username = username
+            user.first_name = first_name
+            user.last_name = last_name
+            user.email = email
+            user.is_active = is_active
+            user.is_staff = is_staff
+            if password: # Kung may bagong password
+                user.set_password(password)
+            user.save()
+            msg = 'User updated successfully.'
+        else:
+            # CREATE (Add)
+            if User.objects.filter(username=username).exists():
+                return JsonResponse({'error': 'Username already exists.'}, status=400)
+            if not password:
+                return JsonResponse({'error': 'Password is required for new users.'}, status=400)
+            
+            user = User.objects.create_user(
+                username=username,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                is_active=is_active,
+                is_staff=is_staff
+            )
+            msg = 'User created successfully.'
+        
+        return JsonResponse({'message': msg})
+    
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@require_POST
+def user_delete_ajax(request, pk):
+    try:
+        user = User.objects.get(pk=pk)
+        # Pigilan ang pag-delete sa sarili (kung naka-login ka)
+        if request.user == user:
+            return JsonResponse({'error': 'You cannot delete yourself.'}, status=400)
+        user.delete()
+        return JsonResponse({'message': 'User deleted successfully.'})
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found.'}, status=404)
