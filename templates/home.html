@@ -1,26 +1,572 @@
-{% extends "theme/base.html" %}
-{% block content %}
-<div class="container-xl">
-  <div class="page-header d-print-none" aria-label="Page header">
-    <div class="container-xl">
-      <div class="row align-items-center">
-        <div class="col">
-          <div class="page-pretitle">Overview</div>
-          <div class="d-flex align-items-center gap-3 flex-wrap d-none d-md-flex">
-            <h2 class="page-title mb-0">Dashboard</h2>
-          </div>
-          <h2 class="page-title mb-0 d-md-none">Dashboard</h2>
-        </div>
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>CrowdFarmV3 — Agricultural Crowdfunding Platform</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:  #22c55e;
+      --green2: #16a34a;
+      --amber:  #f59e0b;
+      --bg:     #060e09;
+      --bg2:    #0a1a10;
+      --border: #1a3d25;
+      --muted:  #1a4728;
+      --text:   #d1fae5;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAVBAR ──────────────────────────────────── */
+    .nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(6,14,9,.92);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .85rem 2.5rem;
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px; text-decoration: none;
+    }
+    .nav-brand-icon {
+      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 15px;
+      box-shadow: 0 4px 14px rgba(34,197,94,.3);
+    }
+    .nav-brand-name {
+      font-size: 1.1rem; font-weight: 800; color: #fff; line-height: 1;
+    }
+    .nav-brand-name span { color: var(--amber); }
+    .nav-links {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .nav-link-item {
+      padding: 8px 16px; border-radius: 9px; font-size: .85rem;
+      font-weight: 600; text-decoration: none; cursor: pointer;
+      transition: all .15s;
+    }
+    .nav-link-ghost {
+      color: var(--muted); background: transparent;
+    }
+    .nav-link-ghost:hover { color: var(--green); background: rgba(34,197,94,.06); }
+    .nav-link-solid {
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      color: #fff; box-shadow: 0 4px 12px rgba(34,197,94,.25);
+    }
+    .nav-link-solid:hover { opacity: .9; transform: translateY(-1px); }
+
+    /* ── HERO ────────────────────────────────────── */
+    .hero {
+      padding: 6rem 2.5rem 5rem;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(34,197,94,.12) 0%, transparent 65%),
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%2322c55e' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    .hero-inner { position: relative; max-width: 760px; margin: 0 auto; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.2);
+      color: var(--green); border-radius: 99px;
+      padding: 5px 16px; font-size: .76rem; font-weight: 700;
+      letter-spacing: .06em; text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .hero-badge i { font-size: .65rem; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    .hero h1 {
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 900; color: #fff;
+      letter-spacing: -.03em; line-height: 1.1;
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 em { font-style: normal; color: var(--green); }
+    .hero h1 .amber { color: var(--amber); }
+
+    .hero-sub {
+      font-size: 1.05rem; color: rgba(255,255,255,.55);
+      line-height: 1.7; max-width: 560px; margin: 0 auto 2.5rem;
+    }
+
+    .hero-actions {
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 28px; border-radius: 11px; font-size: .95rem;
+      font-weight: 700; text-decoration: none; cursor: pointer;
+      border: none; font-family: inherit; transition: all .15s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      color: #fff; box-shadow: 0 8px 20px rgba(34,197,94,.3);
+    }
+    .btn-primary:hover { opacity: .92; transform: translateY(-2px); box-shadow: 0 12px 24px rgba(34,197,94,.35); }
+    .btn-outline {
+      background: transparent; border: 1.5px solid var(--border);
+      color: rgba(255,255,255,.6);
+    }
+    .btn-outline:hover { border-color: var(--green); color: var(--green); background: rgba(34,197,94,.05); }
+
+    /* ── STATS STRIP ─────────────────────────────── */
+    .stats-strip {
+      display: flex; justify-content: center; gap: 0;
+      border: 1px solid var(--border); border-radius: 16px;
+      background: var(--bg2); overflow: hidden;
+      max-width: 700px; margin: 4rem auto 0;
+    }
+    .stat-item {
+      flex: 1; padding: 1.5rem 1rem; text-align: center;
+      border-right: 1px solid var(--border);
+      transition: background .15s;
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-item:hover { background: rgba(34,197,94,.04); }
+    .stat-num { font-size: 1.7rem; font-weight: 800; color: var(--green); line-height: 1; margin-bottom: 5px; }
+    .stat-lbl { font-size: .71rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+
+    /* ── SECTION GENERIC ─────────────────────────── */
+    section { padding: 5rem 2.5rem; }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: .7rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--green);
+      background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.15);
+      border-radius: 99px; padding: 4px 14px; margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+      font-weight: 800; color: #fff;
+      letter-spacing: -.025em; line-height: 1.2; margin-bottom: 12px;
+    }
+    .section-sub { font-size: .95rem; color: rgba(255,255,255,.4); max-width: 500px; }
+
+    /* ── HOW IT WORKS ────────────────────────────── */
+    .how-section { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .how-steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px; margin-top: 3rem;
+    }
+    .how-step {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.75rem;
+      position: relative; transition: border-color .2s, transform .2s;
+    }
+    .how-step:hover { border-color: var(--green); transform: translateY(-3px); }
+    .how-step-num {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .82rem; font-weight: 800; color: var(--green);
+      margin-bottom: 14px;
+    }
+    .how-step-icon {
+      font-size: 1.4rem; color: var(--green);
+      margin-bottom: 10px; display: block;
+    }
+    .how-step h4 { font-size: .95rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .how-step p  { font-size: .82rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── FEATURES ────────────────────────────────── */
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px; margin-top: 3rem;
+    }
+    .feature-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.5rem;
+      transition: border-color .2s;
+    }
+    .feature-card:hover { border-color: rgba(34,197,94,.4); }
+    .feature-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--ic-bg, rgba(34,197,94,.1));
+      border: 1px solid var(--ic-border, rgba(34,197,94,.2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; color: var(--ic, var(--green));
+      margin-bottom: 14px;
+    }
+    .feature-card h4 { font-size: .92rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .feature-card p  { font-size: .82rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── ROLES SECTION ───────────────────────────── */
+    .roles-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; margin-top: 3rem;
+    }
+    .role-card {
+      border-radius: 16px; padding: 2rem;
+      position: relative; overflow: hidden;
+      border: 1px solid;
+    }
+    .role-card.farmer {
+      background: linear-gradient(145deg, #071a10, #0a2518);
+      border-color: var(--border);
+    }
+    .role-card.investor {
+      background: linear-gradient(145deg, #120e00, #1a1400);
+      border-color: #2d2000;
+    }
+    .role-card.admin {
+      background: linear-gradient(145deg, #0c0608, #1a0510);
+      border-color: #3d0f22;
+    }
+    .role-card-icon {
+      width: 50px; height: 50px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; margin-bottom: 16px;
+    }
+    .farmer .role-card-icon  { background: rgba(34,197,94,.1);  color: var(--green); border: 1px solid rgba(34,197,94,.2); }
+    .investor .role-card-icon{ background: rgba(245,158,11,.1); color: var(--amber); border: 1px solid rgba(245,158,11,.2); }
+    .admin .role-card-icon   { background: rgba(244,63,94,.1);  color: #f43f5e; border: 1px solid rgba(244,63,94,.2); }
+    .role-card h3 { font-size: 1.05rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
+    .role-card p  { font-size: .85rem; line-height: 1.65; margin-bottom: 16px; }
+    .farmer p  { color: rgba(255,255,255,.5); }
+    .investor p{ color: rgba(255,255,255,.5); }
+    .admin p   { color: rgba(255,255,255,.5); }
+    .role-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: .7rem; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; border-radius: 99px; padding: 3px 12px;
+    }
+    .farmer .role-tag  { background: rgba(34,197,94,.1);  color: var(--green); border: 1px solid rgba(34,197,94,.2); }
+    .investor .role-tag{ background: rgba(245,158,11,.1); color: var(--amber); border: 1px solid rgba(245,158,11,.2); }
+    .admin .role-tag   { background: rgba(244,63,94,.1);  color: #f43f5e; border: 1px solid rgba(244,63,94,.2); }
+    .role-features { list-style: none; margin-top: 14px; }
+    .role-features li {
+      font-size: .8rem; display: flex; align-items: center; gap: 8px;
+      padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,.04);
+    }
+    .role-features li:last-child { border-bottom: none; }
+    .farmer .role-features li   { color: rgba(255,255,255,.5); }
+    .investor .role-features li { color: rgba(255,255,255,.5); }
+    .admin .role-features li    { color: rgba(255,255,255,.5); }
+    .farmer .role-features i  { color: var(--green); font-size: .65rem; }
+    .investor .role-features i{ color: var(--amber); font-size: .65rem; }
+    .admin .role-features i   { color: #f43f5e; font-size: .65rem; }
+
+    /* ── CTA SECTION ─────────────────────────────── */
+    .cta-section {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+    }
+    .cta-box {
+      background: linear-gradient(145deg, #071a10, #0a2518);
+      border: 1px solid var(--border); border-radius: 20px;
+      padding: 3.5rem 2.5rem; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .cta-box::before {
+      content: '';
+      position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+      width: 400px; height: 300px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(34,197,94,.08) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .cta-box h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800; color: #fff; margin-bottom: 10px; letter-spacing: -.02em; position: relative; }
+    .cta-box p  { color: rgba(255,255,255,.45); margin-bottom: 2rem; position: relative; }
+    .cta-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; position: relative; }
+
+    /* ── FOOTER ──────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 2.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+    footer .foot-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    footer .foot-brand-name { font-size: .9rem; font-weight: 800; color: #fff; }
+    footer .foot-brand-name span { color: var(--amber); }
+    footer p { font-size: .78rem; color: var(--muted); }
+    footer .foot-links { display: flex; gap: 16px; }
+    footer .foot-links a { font-size: .8rem; color: var(--muted); text-decoration: none; transition: color .12s; }
+    footer .foot-links a:hover { color: var(--green); }
+
+    @media (max-width: 640px) {
+      .nav { padding: .75rem 1.25rem; }
+      .nav-link-ghost { display: none; }
+      .hero { padding: 4rem 1.25rem 3.5rem; }
+      section { padding: 3.5rem 1.25rem; }
+      .stats-strip { flex-direction: column; border-radius: 12px; }
+      .stat-item { border-right: none; border-bottom: 1px solid var(--border); }
+      .stat-item:last-child { border-bottom: none; }
+      footer { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<nav class="nav">
+  <a class="nav-brand" href="/">
+    <div class="nav-brand-icon"><i class="fas fa-leaf"></i></div>
+    <div>
+      <div class="nav-brand-name">CrowdFarm<span>V3</span></div>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="/campaigns/portal/" class="nav-link-item nav-link-ghost">
+      <i class="fas fa-seedling"></i> Campaigns
+    </a>
+    <a href="/login/" class="nav-link-item nav-link-ghost">
+      <i class="fas fa-sign-in-alt"></i> Login
+    </a>
+    <a href="/register/" class="nav-link-item nav-link-solid">
+      <i class="fas fa-user-plus"></i> Get Started
+    </a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <i class="fas fa-circle"></i> Now Open for Investments
+    </div>
+    <h1>
+      Grow <em>Wealth</em> by<br>
+      Funding <span class="amber">Filipino Farmers</span>
+    </h1>
+    <p class="hero-sub">
+      CrowdFarmV3 connects investors with verified agricultural campaigns.
+      Support local farmers, earn competitive returns, and help build a stronger food system.
+    </p>
+    <div class="hero-actions">
+      <a href="/login/" class="btn btn-primary">
+        <i class="fas fa-sign-in-alt"></i> Sign In to Your Account
+      </a>
+      <a href="/campaigns/portal/" class="btn btn-outline">
+        <i class="fas fa-eye"></i> View Public Campaigns
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats strip -->
+  <div class="stats-strip">
+    <div class="stat-item">
+      <div class="stat-num">{{ total_projects }}</div>
+      <div class="stat-lbl">Active Campaigns</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">{{ total_investors }}</div>
+      <div class="stat-lbl">Investors</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">₱{{ total_raised|floatformat:"0g" }}</div>
+      <div class="stat-lbl">Funds Raised</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">Philippines</div>
+      <div class="stat-lbl">Coverage Area</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ HOW IT WORKS ══ -->
+<section class="how-section">
+  <div class="section-inner">
+    <div class="section-label"><i class="fas fa-route"></i> How It Works</div>
+    <div class="section-title">From Seed to Investment in 4 Steps</div>
+    <p class="section-sub">A transparent, secure process for both farmers and investors.</p>
+
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="how-step-num">01</div>
+        <i class="fas fa-user-plus how-step-icon"></i>
+        <h4>Create an Account</h4>
+        <p>Register as a farmer or investor. All accounts are verified before activation.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">02</div>
+        <i class="fas fa-seedling how-step-icon"></i>
+        <h4>Submit a Campaign</h4>
+        <p>Farmers submit crop details, funding targets, location, and supporting documents.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">03</div>
+        <i class="fas fa-shield-alt how-step-icon"></i>
+        <h4>Verification &amp; Approval</h4>
+        <p>Administrators review and verify campaigns before they go live on the platform.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">04</div>
+        <i class="fas fa-coins how-step-icon"></i>
+        <h4>Invest &amp; Earn</h4>
+        <p>Investors fund campaigns via GCash, Maya, or Bank Transfer and earn profit on harvest.</p>
       </div>
     </div>
   </div>
-  <br>
+</section>
 
-  <div class="card">
-    <div class="card-body text-muted">
-      Dashboard
+<!-- ══ FEATURES ══ -->
+<section>
+  <div class="section-inner">
+    <div class="section-label"><i class="fas fa-star"></i> Platform Features</div>
+    <div class="section-title">Everything You Need in One Place</div>
+    <p class="section-sub">Built for transparency, security, and real agricultural impact.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="--ic-bg:rgba(34,197,94,.1);--ic-border:rgba(34,197,94,.2);--ic:#22c55e;">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <h4>Verified Campaigns Only</h4>
+        <p>Every campaign is reviewed by platform administrators before it accepts investments. No fake or unverified projects.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="--ic-bg:rgba(245,158,11,.1);--ic-border:rgba(245,158,11,.2);--ic:#f59e0b;">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h4>Real-Time Progress Tracking</h4>
+        <p>Watch funding progress in real time. Transparent funding meters show exactly how much has been raised per campaign.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="--ic-bg:rgba(99,102,241,.1);--ic-border:rgba(99,102,241,.2);--ic:#818cf8;">
+          <i class="fas fa-receipt"></i>
+        </div>
+        <h4>Full Transaction History</h4>
+        <p>Every investment generates a traceable record. View your full history with dates, amounts, and campaign details.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="--ic-bg:rgba(6,182,212,.1);--ic-border:rgba(6,182,212,.2);--ic:#22d3ee;">
+          <i class="fas fa-mobile-alt"></i>
+        </div>
+        <h4>Multiple Payment Methods</h4>
+        <p>Supports GCash, Maya, Bank Transfer, and Cash payments — making it accessible for all Filipino investors.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="--ic-bg:rgba(34,197,94,.1);--ic-border:rgba(34,197,94,.2);--ic:#22c55e;">
+          <i class="fas fa-lock"></i>
+        </div>
+        <h4>Secure &amp; Private</h4>
+        <p>Your data is protected under RA 10173. Brute-force login protection and encrypted credentials keep your account safe.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="--ic-bg:rgba(245,158,11,.1);--ic-border:rgba(245,158,11,.2);--ic:#f59e0b;">
+          <i class="fas fa-users"></i>
+        </div>
+        <h4>Community of Farmers</h4>
+        <p>From rice and corn to aquaculture and organic farming — browse a growing catalog of diverse agricultural projects.</p>
+      </div>
     </div>
   </div>
+</section>
 
-</div>
-{% endblock %}
+<!-- ══ ROLES ══ -->
+<section style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="section-inner">
+    <div class="section-label"><i class="fas fa-users"></i> Who Is It For?</div>
+    <div class="section-title">Three Roles, One Platform</div>
+    <p class="section-sub">CrowdFarmV3 serves farmers, investors, and administrators with distinct, role-specific experiences.</p>
+
+    <div class="roles-grid">
+
+      <div class="role-card farmer">
+        <div class="role-card-icon"><i class="fas fa-tractor"></i></div>
+        <div class="role-tag"><i class="fas fa-leaf"></i> Farmer</div>
+        <h3>For Farmers &amp; Creators</h3>
+        <p>Raise funds for your agricultural campaigns directly from investors. Submit your crop plan, get verified, and start collecting investments.</p>
+        <ul class="role-features">
+          <li><i class="fas fa-check-circle"></i> Submit and manage campaigns</li>
+          <li><i class="fas fa-check-circle"></i> Upload verification documents</li>
+          <li><i class="fas fa-check-circle"></i> Track funding progress</li>
+          <li><i class="fas fa-check-circle"></i> Receive investment funds</li>
+        </ul>
+      </div>
+
+      <div class="role-card investor">
+        <div class="role-card-icon"><i class="fas fa-coins"></i></div>
+        <div class="role-tag"><i class="fas fa-chart-line"></i> Investor</div>
+        <h3>For Investors</h3>
+        <p>Browse verified campaigns, invest your money, and earn profit returns when farmers harvest. Full transparency on every peso invested.</p>
+        <ul class="role-features">
+          <li><i class="fas fa-check-circle"></i> Browse active campaigns</li>
+          <li><i class="fas fa-check-circle"></i> Invest via GCash, Maya, or Bank</li>
+          <li><i class="fas fa-check-circle"></i> Track investment portfolio</li>
+          <li><i class="fas fa-check-circle"></i> Earn competitive profit returns</li>
+        </ul>
+      </div>
+
+      <div class="role-card admin">
+        <div class="role-card-icon"><i class="fas fa-shield-halved"></i></div>
+        <div class="role-tag"><i class="fas fa-crown"></i> Admin</div>
+        <h3>For Administrators</h3>
+        <p>Full system oversight — verify campaigns, manage users, track all investments, and maintain platform integrity.</p>
+        <ul class="role-features">
+          <li><i class="fas fa-check-circle"></i> Verify and approve campaigns</li>
+          <li><i class="fas fa-check-circle"></i> Manage all users</li>
+          <li><i class="fas fa-check-circle"></i> View system-wide analytics</li>
+          <li><i class="fas fa-check-circle"></i> Access full audit trail</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ CTA ══ -->
+<section class="cta-section">
+  <div class="section-inner">
+    <div class="cta-box">
+      <h2>Ready to Start Investing?</h2>
+      <p>Join CrowdFarmV3 today. Create your free account and browse verified agricultural campaigns.</p>
+      <div class="cta-actions">
+        <a href="/register/" class="btn btn-primary">
+          <i class="fas fa-user-plus"></i> Create Free Account
+        </a>
+        <a href="/login/" class="btn btn-outline">
+          <i class="fas fa-sign-in-alt"></i> Sign In
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <a class="foot-brand" href="/">
+    <div class="nav-brand-icon" style="width:30px;height:30px;font-size:12px;border-radius:8px;">
+      <i class="fas fa-leaf"></i>
+    </div>
+    <span class="foot-brand-name">CrowdFarm<span>V3</span></span>
+  </a>
+  <p>&copy; 2026 CrowdFarmV3. Agricultural Crowdfunding Platform. Philippines.</p>
+  <div class="foot-links">
+    <a href="/login/">Login</a>
+    <a href="/register/">Register</a>
+    <a href="/campaigns/portal/">Campaigns</a>
+    <a href="/admin-login/" style="opacity:.4;font-size:.72rem;">
+      <i class="fas fa-shield-halved" style="font-size:.65rem;"></i> Admin Access
+    </a>
+  </div>
+</footer>
+
+</body>
+</html>

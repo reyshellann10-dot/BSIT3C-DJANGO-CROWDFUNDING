@@ -1,0 +1,147 @@
+{% extends 'theme/base.html' %}
+{% block content %}
+
+<!-- HEADER -->
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <div class="d-flex align-items-center">
+            <a href="{% url 'campaigns:manage_campaign' project.pk %}" class="btn btn-outline-secondary btn-sm me-3">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="page-title text-white mb-0">Backers List</h2>
+                <p class="text-muted mb-0">{{ project.title }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-auto ms-auto">
+        <div class="p-2 px-4 rounded text-center" style="background:#1e293b;">
+            <div class="text-success fw-bold fs-5">₱{{ total_raised|floatformat:"2g" }}</div>
+            <small class="text-muted">Total Raised</small>
+        </div>
+    </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="card bg-dark border-secondary mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between mb-2">
+            <span class="text-white fw-bold">₱{{ total_raised|floatformat:"2g" }} raised</span>
+            <span class="text-muted">{{ project.progress_percentage }}% of ₱{{ project.target_amount|floatformat:"2g" }}</span>
+        </div>
+        <div class="progress mb-2" style="height:12px; background:#334155; border-radius:8px;">
+            <div class="progress-bar bg-success" style="width:{{ project.progress_percentage }}%; border-radius:8px;"></div>
+        </div>
+        <div class="row g-3 text-center mt-1">
+            <div class="col-4">
+                <div class="text-info fw-bold">{{ backers.paginator.count }}</div>
+                <small class="text-muted">Total Backers</small>
+            </div>
+            <div class="col-4">
+                <div class="text-warning fw-bold">{{ project.days_left }}</div>
+                <small class="text-muted">Days Left</small>
+            </div>
+            <div class="col-4">
+                {% if project.harvest_date %}
+                <div class="text-success fw-bold">{{ project.harvest_date|date:"M d, Y" }}</div>
+                <small class="text-muted">
+                    {% if project.harvest_expired %}<span class="text-danger">Expired</span>{% else %}Harvest Date{% endif %}
+                </small>
+                {% else %}
+                <div class="text-muted fw-bold">—</div>
+                <small class="text-muted">Harvest Date</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BACKERS TABLE -->
+<div class="card bg-dark border-secondary">
+    <div class="card-header border-secondary bg-transparent d-flex align-items-center">
+        <h4 class="card-title text-white mb-0"><i class="fas fa-users text-info me-2"></i> All Backers</h4>
+        <span class="badge bg-secondary ms-2">{{ backers.paginator.count }}</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-vcenter table-hover card-table mb-0 text-white">
+                <thead>
+                    <tr style="border-bottom:2px solid #334155;">
+                        <th style="color:#94a3b8;">#</th>
+                        <th style="color:#94a3b8;">Backer</th>
+                        <th style="color:#94a3b8;">Contact</th>
+                        <th style="color:#94a3b8;">Amount</th>
+                        <th style="color:#94a3b8;">Shares</th>
+                        <th style="color:#94a3b8;">Payment</th>
+                        <th style="color:#94a3b8;">Expected Return</th>
+                        <th style="color:#94a3b8;">Date</th>
+                        <th class="text-end" style="color:#94a3b8;">Receipt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in backers %}
+                    <tr style="border-bottom:1px solid #334155;">
+                        <td class="text-muted">{{ forloop.counter }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div style="width:34px;height:34px;min-width:34px;border-radius:50%;background:#334155;display:flex;align-items:center;justify-content:center;">
+                                    <span class="text-white fw-bold small">{{ inv.investor.name|first|upper }}</span>
+                                </div>
+                                <div>
+                                    <div class="text-white fw-bold small">{{ inv.investor.name }}</div>
+                                    {% if inv.investor.address %}
+                                    <div class="text-muted" style="font-size:.7rem;">{{ inv.investor.address|truncatechars:25 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-muted small">{{ inv.investor.contact|default:'—' }}</td>
+                        <td class="fw-bold text-white">₱{{ inv.amount }}</td>
+                        <td class="text-muted">{{ inv.shares }}</td>
+                        <td>
+                            {% if inv.payment_method == 'gcash' %}<span class="badge bg-blue-lt text-primary"><i class="fas fa-mobile-alt me-1"></i>GCash</span>
+                            {% elif inv.payment_method == 'bank_transfer' %}<span class="badge bg-secondary"><i class="fas fa-university me-1"></i>Bank</span>
+                            {% elif inv.payment_method == 'maya' %}<span class="badge bg-cyan-lt text-info"><i class="fas fa-wallet me-1"></i>Maya</span>
+                            {% elif inv.payment_method == 'check' %}<span class="badge bg-warning text-dark"><i class="fas fa-file-invoice me-1"></i>Check</span>
+                            {% else %}<span class="badge bg-green-lt text-success"><i class="fas fa-money-bill-wave me-1"></i>Cash</span>{% endif %}
+                        </td>
+                        <td class="text-info fw-bold">₱{{ inv.total_return }}</td>
+                        <td class="text-muted small">{{ inv.created_at|date:"M d, Y" }}</td>
+                        <td class="text-end">
+                            {% with txn=inv.transactions.first %}
+                            {% if txn %}
+                            <a href="{% url 'investments:receipt' txn.pk %}" class="btn btn-sm btn-outline-info">
+                                <i class="fas fa-receipt"></i>
+                            </a>
+                            {% else %}—{% endif %}
+                            {% endwith %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="9" class="text-center py-5 text-muted">No backers yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if backers.has_other_pages %}
+    <div class="card-footer border-secondary bg-transparent">
+        <nav><ul class="pagination mb-0 justify-content-end">
+            {% if backers.has_previous %}
+            <li class="page-item"><a class="page-link bg-dark border-secondary text-white" href="?page={{ backers.previous_page_number }}"><i class="fas fa-chevron-left"></i></a></li>
+            {% endif %}
+            {% for num in backers.paginator.page_range %}
+            <li class="page-item {% if backers.number == num %}active{% endif %}">
+                <a class="page-link bg-dark border-secondary text-white" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            {% if backers.has_next %}
+            <li class="page-item"><a class="page-link bg-dark border-secondary text-white" href="?page={{ backers.next_page_number }}"><i class="fas fa-chevron-right"></i></a></li>
+            {% endif %}
+        </ul></nav>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

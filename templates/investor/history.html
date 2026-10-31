@@ -1,0 +1,173 @@
+{% extends 'investor/base_investor.html' %}
+{% block title %}Investment History — Investor Portal{% endblock %}
+
+{% block inv_content %}
+<style>
+.inv-page { padding:.25rem 0 2rem; }
+.inv-hero-sm { background:linear-gradient(135deg,#120e00,#1a1400);border:1px solid #2d2000;border-radius:14px;padding:1.4rem 1.75rem;margin-bottom:1.5rem; }
+.inv-hero-sm h3 { font-size:1.1rem;font-weight:800;color:#fff;margin-bottom:3px; }
+.inv-hero-sm p  { font-size:.82rem;color:#3d2d00;margin:0; }
+
+/* summary pills */
+.inv-summary { display:flex;gap:12px;flex-wrap:wrap;margin-top:1.2rem; }
+.inv-sum-pill { background:rgba(245,158,11,.06);border:1px solid #2d2000;border-radius:10px;padding:10px 16px;min-width:110px; }
+.inv-sum-num  { font-size:1.2rem;font-weight:800;color:#fbbf24;line-height:1; }
+.inv-sum-lbl  { font-size:.64rem;color:#3d2d00;text-transform:uppercase;letter-spacing:.07em;margin-top:3px; }
+
+/* search */
+.inv-search-row { display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.4rem; }
+.inv-search-wrap { position:relative;flex:1;min-width:200px; }
+.inv-search-wrap i { position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#2d2000;font-size:12px;pointer-events:none; }
+.inv-search { width:100%;padding:9px 13px 9px 35px;background:#120e00;border:1.5px solid #2d2000;border-radius:9px;color:#fde68a;font-size:.86rem;outline:none;font-family:inherit;transition:border-color .15s; }
+.inv-search:focus { border-color:#f59e0b; }
+.inv-search::placeholder { color:#2d2000; }
+.inv-btn-search { padding:9px 18px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#0a0800;border:none;border-radius:9px;font-size:.84rem;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .12s;display:inline-flex;align-items:center;gap:6px; }
+.inv-btn-search:hover { opacity:.88; }
+.inv-btn-clear { padding:9px 16px;background:transparent;border:1.5px solid #2d2000;color:#3d2d00;border-radius:9px;font-size:.84rem;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:border-color .12s; }
+.inv-btn-clear:hover { border-color:#f59e0b;color:#f59e0b; }
+
+/* heading */
+.inv-sh { font-size:.67rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#3d2d00;display:flex;align-items:center;gap:9px;margin-bottom:1.1rem; }
+.inv-sh::after { content:'';flex:1;height:1px;background:#1a1400; }
+.inv-sh i { color:#f59e0b; }
+
+/* table */
+.inv-table-wrap { background:#120e00;border:1px solid #2d2000;border-radius:13px;overflow:hidden;margin-bottom:2rem; }
+.inv-table { width:100%;border-collapse:collapse; }
+.inv-table thead th { font-size:.63rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#3d2d00;padding:.65rem 1.2rem;background:#0a0800;border-bottom:1px solid #2d2000; }
+.inv-table tbody td { padding:.75rem 1.2rem;border-bottom:1px solid #1a1400;font-size:.82rem;color:#5a4400;vertical-align:middle; }
+.inv-table tbody tr:last-child td { border-bottom:none; }
+.inv-table tbody tr:hover td { background:rgba(245,158,11,.03); }
+.inv-td-name  { color:#fde68a;font-weight:600; }
+.inv-td-amount{ color:#fbbf24;font-weight:700; }
+.inv-td-profit{ color:#4ade80;font-weight:600; }
+.inv-badge { display:inline-block;padding:2px 9px;border-radius:99px;font-size:.66rem;font-weight:700; }
+.ib-completed { background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2); }
+.ib-ongoing   { background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.2); }
+.ib-cancelled { background:rgba(244,63,94,.1); color:#fb7185;border:1px solid rgba(244,63,94,.2); }
+.ib-draft     { background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.2); }
+
+/* pagination */
+.inv-pager { display:flex;gap:6px;justify-content:center; }
+.inv-page-btn { padding:6px 13px;border-radius:7px;font-size:.8rem;font-weight:600;background:#120e00;border:1px solid #2d2000;color:#3d2d00;text-decoration:none;transition:all .12s; }
+.inv-page-btn:hover,.inv-page-btn.active { background:#f59e0b;border-color:#f59e0b;color:#0a0800; }
+
+/* empty */
+.inv-empty { text-align:center;padding:3rem 1rem; }
+.inv-empty i { font-size:2rem;color:#2d2000;display:block;margin-bottom:10px; }
+.inv-empty p { color:#3d2d00;font-size:.88rem; }
+</style>
+
+<div class="inv-page">
+
+  <!-- Hero -->
+  <div class="inv-hero-sm">
+    <h3><i class="fas fa-clock-rotate-left me-2" style="color:#f59e0b;"></i> Investment History</h3>
+    <p>All investment records across the platform.</p>
+    <div class="inv-summary">
+      <div class="inv-sum-pill">
+        <div class="inv-sum-num">{{ total_count }}</div>
+        <div class="inv-sum-lbl">Total Records</div>
+      </div>
+      <div class="inv-sum-pill">
+        <div class="inv-sum-num" style="font-size:1rem;">₱{{ total_amount|floatformat:"0g" }}</div>
+        <div class="inv-sum-lbl">Total Invested</div>
+      </div>
+      <div class="inv-sum-pill">
+        <div class="inv-sum-num" style="font-size:1rem;color:#4ade80;">₱{{ total_profit|floatformat:"0g" }}</div>
+        <div class="inv-sum-lbl">Est. Returns</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <form method="GET">
+    <div class="inv-search-row">
+      <div class="inv-search-wrap">
+        <i class="fas fa-search"></i>
+        <input type="text" name="q" value="{{ query }}" class="inv-search"
+               placeholder="Search by investor name or campaign…">
+      </div>
+      <button type="submit" class="inv-btn-search"><i class="fas fa-search"></i> Search</button>
+      {% if query %}
+      <a href="{% url 'investor_portal:history' %}" class="inv-btn-clear"><i class="fas fa-times"></i> Clear</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <!-- Heading -->
+  <div class="inv-sh">
+    <i class="fas fa-coins"></i>
+    {% if query %}Results for "{{ query }}"{% else %}All Investments{% endif %}
+    <span style="font-weight:400;margin-left:-6px;">&nbsp;({{ investments.paginator.count }})</span>
+  </div>
+
+  <!-- Table -->
+  <div class="inv-table-wrap">
+    <div style="overflow-x:auto;">
+      <table class="inv-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Investor</th>
+            <th>Campaign</th>
+            <th>Amount</th>
+            <th>Est. Return</th>
+            <th>Shares</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inv in investments %}
+          <tr>
+            <td style="color:#2d2000;">{{ inv.pk }}</td>
+            <td class="inv-td-name">{{ inv.investor.name }}</td>
+            <td>{{ inv.project.title }}</td>
+            <td class="inv-td-amount">₱{{ inv.amount|floatformat:"2g" }}</td>
+            <td class="inv-td-profit">₱{{ inv.profit|floatformat:"2g" }}</td>
+            <td>{{ inv.shares }}</td>
+            <td>
+              {% if inv.project.status == 'ongoing' %}
+                <span class="inv-badge ib-ongoing">Ongoing</span>
+              {% elif inv.project.status == 'completed' %}
+                <span class="inv-badge ib-completed">Completed</span>
+              {% elif inv.project.status == 'cancelled' %}
+                <span class="inv-badge ib-cancelled">Cancelled</span>
+              {% else %}
+                <span class="inv-badge ib-draft">{{ inv.project.status|title }}</span>
+              {% endif %}
+            </td>
+            <td>{{ inv.created_at|date:"M j, Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="inv-empty">
+              <i class="fas fa-coins"></i>
+              <p>No investments found{% if query %} for "{{ query }}"{% endif %}.</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if investments.paginator.num_pages > 1 %}
+  <div class="inv-pager">
+    {% if investments.has_previous %}
+    <a href="?page={{ investments.previous_page_number }}{% if query %}&q={{ query }}{% endif %}" class="inv-page-btn"><i class="fas fa-chevron-left"></i></a>
+    {% endif %}
+    {% for n in investments.paginator.page_range %}
+    <a href="?page={{ n }}{% if query %}&q={{ query }}{% endif %}"
+       class="inv-page-btn {% if investments.number == n %}active{% endif %}">{{ n }}</a>
+    {% endfor %}
+    {% if investments.has_next %}
+    <a href="?page={{ investments.next_page_number }}{% if query %}&q={{ query }}{% endif %}" class="inv-page-btn"><i class="fas fa-chevron-right"></i></a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.shortcuts import redirect, render
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods
 
 User = get_user_model()
@@ -100,8 +101,55 @@ def _validate_registration_data(data):
 
 
 @require_http_methods(['GET', 'POST'])
+def admin_login_view(request):
+    """Separate login page for staff/superusers only."""
+    # Redirect already-authenticated admins straight to the dashboard
+    if request.user.is_authenticated:
+        if request.user.is_staff or request.user.is_superuser:
+            return redirect('/campaigns/')
+        # Authenticated but not admin — send to user portal
+        return redirect('/campaigns/portal/')
+
+    failed_attempts, remaining_lock = _get_lock_state(request)
+
+    if remaining_lock:
+        messages.error(request, LOCKED_MESSAGE)
+        return render(request, 'auth/admin_login.html', {'lock_remaining': remaining_lock})
+
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            if user.is_staff or user.is_superuser:
+                # Valid admin — log in and go to dashboard
+                login(request, user)
+                _reset_lock_state(request)
+                return redirect('/campaigns/')
+            else:
+                # Valid credentials but not an admin — reject, do NOT log in
+                failed_attempts += 1
+                request.session['failed_attempts'] = failed_attempts
+                return render(request, 'auth/admin_login.html', {
+                    'error': 'You are not authorized to access the admin panel.'
+                })
+        else:
+            # Wrong credentials
+            failed_attempts += 1
+            request.session['failed_attempts'] = failed_attempts
+            if failed_attempts >= MAX_FAILED_ATTEMPTS:
+                remaining = _set_lock_state(request)
+                messages.error(request, LOCKED_MESSAGE)
+                return render(request, 'auth/admin_login.html', {'lock_remaining': remaining})
+            messages.error(request, INVALID_LOGIN_MESSAGE)
+            return render(request, 'auth/admin_login.html')
+
+    return render(request, 'auth/admin_login.html')
+
+
+@require_http_methods(['GET', 'POST'])
 def login_view(request):
-    # 1. Check kung naka-lock ang user
     failed_attempts, remaining_lock = _get_lock_state(request)
     if remaining_lock:
         messages.error(request, LOCKED_MESSAGE)
@@ -113,11 +161,20 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
-            # Successful login
+            # Successful login — route by role
             login(request, user)
             _reset_lock_state(request)
-            # Dito natin binago, diretso na sa campaigns imbes na crowdfunding
-            return redirect('/campaigns/') 
+            if user.is_staff or user.is_superuser:
+                return redirect('/campaigns/')       # Admin dashboard
+            # Return the user where they came from (e.g. "Login to Invest")
+            next_url = request.POST.get('next') or request.GET.get('next')
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return redirect(next_url)
+            return redirect('/campaigns/portal/')    # User portal
         else:
             # Failed login attempt
             failed_attempts += 1
@@ -138,27 +195,62 @@ def register_view(request):
     if request.method == 'POST':
         errors = _validate_registration_data(request.POST)
         if not errors:
+            first_name = request.POST.get('first_name', '').strip()
+            last_name  = request.POST.get('last_name', '').strip()
+
             user = User.objects.create_user(
                 username=request.POST.get('username'),
                 email=request.POST.get('email'),
                 password=request.POST.get('password'),
-                first_name=request.POST.get('first_name'),
-                last_name=request.POST.get('last_name')
+                first_name=first_name,
+                last_name=last_name,
             )
+
+            # Auto-create a linked Investor profile for every new user
+            try:
+                from apps.investors.models import Investor
+                Investor.objects.create(
+                    user=user,
+                    name=f"{first_name} {last_name}".strip() or user.username,
+                )
+            except Exception:
+                # If profile creation fails for any reason, the user account
+                # is still valid — admin can link the profile manually later.
+                pass
+
             login(request, user)
-            return redirect('/campaigns/')
+            return redirect('/campaigns/portal/')
         else:
             return render(request, 'auth/register.html', {'errors': errors, 'data': request.POST})
-            
+
     return render(request, 'auth/register.html')
 
 
 @require_http_methods(['GET', 'POST'])
 def logout_view(request):
     logout(request)
-    return redirect('/login/')
+    return redirect('/')   # Back to public landing page
 
 
-@login_required
 def home(request):
-    return redirect('/campaigns/')
+    """Public landing page — no login required."""
+    if request.user.is_authenticated:
+        if request.user.is_staff or request.user.is_superuser:
+            return redirect('/campaigns/')
+        return redirect('/campaigns/portal/')
+
+    # Real platform stats for the landing page
+    from django.db.models import Sum as _Sum
+    from apps.campaigns.models import Project
+    from apps.investors.models import Investor
+    from apps.investments.models import Investment
+
+    total_projects  = Project.objects.filter(status='ongoing').count()
+    total_investors = Investor.objects.count()
+    total_raised    = Investment.objects.aggregate(t=_Sum('amount'))['t'] or 0
+
+    return render(request, 'home.html', {
+        'total_projects':  total_projects,
+        'total_investors': total_investors,
+        'total_raised':    total_raised,
+    })

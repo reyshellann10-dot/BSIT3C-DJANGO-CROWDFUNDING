@@ -1,0 +1,358 @@
+{% extends 'theme/base.html' %}
+{% block content %}
+
+<!-- HEADER -->
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'campaigns:project_list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="page-title text-white mb-0">{{ project.title }}</h2>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                    <span class="badge bg-secondary">{{ project.get_category_display }}</span>
+                    {% if project.is_verified %}
+                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Verified</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Pending Verification</span>
+                    {% endif %}
+                    {% if project.status == 'ongoing' %}
+                        <span class="badge bg-success">Ongoing</span>
+                    {% elif project.status == 'pending_verification' %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    {% elif project.status == 'completed' %}
+                        <span class="badge bg-info">Completed</span>
+                    {% elif project.status == 'draft' %}
+                        <span class="badge bg-secondary">Draft</span>
+                    {% else %}
+                        <span class="badge bg-danger">{{ project.get_status_display }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-auto ms-auto d-flex gap-2 flex-wrap">
+        <a href="{% url 'campaigns:project_update' project.pk %}" class="btn btn-warning">
+            <i class="fas fa-edit me-1"></i> Edit
+        </a>
+        <a href="{% url 'campaigns:manage_campaign' project.pk %}" class="btn btn-outline-info">
+            <i class="fas fa-cog me-1"></i> Manage
+        </a>
+        <a href="{% url 'campaigns:backers_list' project.pk %}" class="btn btn-outline-success">
+            <i class="fas fa-users me-1"></i> Backers ({{ total_backers }})
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- LEFT: Main content -->
+    <div class="col-lg-8">
+
+        <!-- Campaign image / video -->
+        {% if project.image %}
+        <div class="card bg-dark border-secondary mb-4 overflow-hidden">
+            <img src="{{ project.image.url }}" alt="{{ project.title }}"
+                 style="width:100%; max-height:320px; object-fit:cover;">
+        </div>
+        {% endif %}
+
+        {% if project.video_url %}
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-body p-2">
+                <div class="ratio ratio-16x9">
+                    <iframe src="{{ project.video_url }}" allowfullscreen
+                            style="border-radius:8px; border:none;"></iframe>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Story / Description -->
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-header border-secondary bg-transparent">
+                <h4 class="card-title text-white mb-0">
+                    <i class="fas fa-book-open text-info me-2"></i> Campaign Story
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if project.story %}
+                    <p class="text-white" style="white-space:pre-wrap; line-height:1.7;">{{ project.story }}</p>
+                {% elif project.description %}
+                    <p class="text-white" style="white-space:pre-wrap; line-height:1.7;">{{ project.description }}</p>
+                {% else %}
+                    <p class="text-muted fst-italic">No story provided yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Campaign Details Grid -->
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-header border-secondary bg-transparent">
+                <h4 class="card-title text-white mb-0">
+                    <i class="fas fa-info-circle text-warning me-2"></i> Campaign Details
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    {% if project.farmer_name %}
+                    <div class="col-sm-6 col-md-4">
+                        <div class="p-3 rounded" style="background:#0f172a;">
+                            <div class="text-muted small mb-1"><i class="fas fa-user-tie me-1"></i> Farmer / Creator</div>
+                            <div class="text-white fw-bold">{{ project.farmer_name }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if project.crop_type %}
+                    <div class="col-sm-6 col-md-4">
+                        <div class="p-3 rounded" style="background:#0f172a;">
+                            <div class="text-muted small mb-1"><i class="fas fa-leaf me-1"></i> Crop / Product</div>
+                            <div class="text-white fw-bold">{{ project.crop_type }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if project.location %}
+                    <div class="col-sm-6 col-md-4">
+                        <div class="p-3 rounded" style="background:#0f172a;">
+                            <div class="text-muted small mb-1"><i class="fas fa-map-marker-alt me-1"></i> Location</div>
+                            <div class="text-white fw-bold">{{ project.location }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="col-sm-6 col-md-4">
+                        <div class="p-3 rounded" style="background:#0f172a;">
+                            <div class="text-muted small mb-1"><i class="fas fa-calendar-plus me-1"></i> Start Date</div>
+                            <div class="text-white fw-bold">{{ project.start_date|date:"F d, Y" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="p-3 rounded" style="background:#0f172a;">
+                            <div class="text-muted small mb-1"><i class="fas fa-calendar-times me-1"></i> Funding Deadline</div>
+                            <div class="fw-bold {% if project.is_expired %}text-danger{% elif project.days_left <= 7 %}text-warning{% else %}text-white{% endif %}">
+                                {{ project.end_date|date:"F d, Y" }}
+                                <span class="badge {% if project.is_expired %}bg-danger{% elif project.days_left <= 7 %}bg-warning text-dark{% else %}bg-secondary{% endif %} ms-1">
+                                    {% if project.is_expired %}Expired{% else %}{{ project.days_left }}d left{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% if project.harvest_date %}
+                    <div class="col-sm-6 col-md-4">
+                        <div class="p-3 rounded" style="background:#0f172a; border:1px solid {% if project.harvest_expired %}#ef4444{% else %}#22c55e{% endif %};">
+                            <div class="text-muted small mb-1"><i class="fas fa-seedling me-1"></i> Harvest / Expiry Date</div>
+                            <div class="fw-bold {% if project.harvest_expired %}text-danger{% else %}text-success{% endif %}">
+                                {{ project.harvest_date|date:"F d, Y" }}
+                                {% if project.harvest_expired %}
+                                    <span class="badge bg-danger ms-1">Expired</span>
+                                {% elif project.days_to_harvest is not None %}
+                                    <span class="badge bg-success ms-1">{{ project.days_to_harvest }}d</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent backers activity -->
+        <div class="card bg-dark border-secondary">
+            <div class="card-header border-secondary bg-transparent d-flex align-items-center">
+                <h4 class="card-title text-white mb-0">
+                    <i class="fas fa-bolt text-warning me-2"></i> Recent Backer Activity
+                </h4>
+                <span class="badge bg-success ms-2" style="animation:blink 1.5s infinite;">● LIVE</span>
+            </div>
+            <div class="card-body p-0">
+                {% for txn in recent_txns %}
+                <div class="d-flex align-items-center gap-3 px-3 py-2" style="border-bottom:1px solid #1e293b;">
+                    <div style="width:36px;height:36px;min-width:36px;border-radius:50%;background:#334155;display:flex;align-items:center;justify-content:center;">
+                        <span class="text-white fw-bold small">{{ txn.investment.investor.name|first|upper }}</span>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="text-white small fw-bold">{{ txn.investment.investor.name }}</div>
+                        <div class="text-muted" style="font-size:.72rem;">
+                            <i class="fas fa-phone me-1"></i>{{ txn.investment.investor.contact|default:'—' }}
+                            &nbsp;·&nbsp;
+                            {{ txn.created_at|date:"M d, Y g:i A" }}
+                            &nbsp;·&nbsp;
+                            <code class="text-info">{{ txn.reference_number }}</code>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div class="text-success fw-bold">₱{{ txn.amount }}</div>
+                        <span class="badge bg-success" style="font-size:.65rem;">Confirmed</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-users fa-2x mb-2 d-block opacity-25"></i>
+                    No backers yet — be the first to invest!
+                </div>
+                {% endfor %}
+            </div>
+            {% if total_backers > 10 %}
+            <div class="card-footer border-secondary bg-transparent text-center">
+                <a href="{% url 'campaigns:backers_list' project.pk %}" class="btn btn-sm btn-outline-info">
+                    View all {{ total_backers }} backers
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- RIGHT: Progress + Quick stats -->
+    <div class="col-lg-4">
+
+        <!-- Funding progress -->
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-header border-secondary bg-transparent">
+                <h5 class="card-title text-white mb-0">
+                    <i class="fas fa-chart-line text-success me-2"></i> Funding Progress
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <div class="text-white fw-bold" style="font-size:1.8rem;">
+                        ₱{{ total_raised|floatformat:"2g" }}
+                    </div>
+                    <small class="text-muted">raised of ₱{{ project.target_amount|floatformat:"2g" }} goal</small>
+                </div>
+                <div class="progress mb-3" style="height:16px; background:#334155; border-radius:10px;">
+                    <div class="progress-bar bg-success fw-bold"
+                         style="width:{{ project.progress_percentage }}%; border-radius:10px; font-size:.75rem; line-height:16px;">
+                        {% if project.progress_percentage >= 10 %}{{ project.progress_percentage }}%{% endif %}
+                    </div>
+                </div>
+                <div class="row g-2 text-center">
+                    <div class="col-4">
+                        <div class="p-2 rounded" style="background:#0f172a;">
+                            <div class="text-success fw-bold fs-5">{{ project.progress_percentage }}%</div>
+                            <div class="text-muted" style="font-size:.7rem;">Funded</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 rounded" style="background:#0f172a;">
+                            <div class="fw-bold fs-5 {% if project.is_expired %}text-danger{% elif project.days_left <= 7 %}text-warning{% else %}text-white{% endif %}">
+                                {% if project.is_expired %}0{% else %}{{ project.days_left }}{% endif %}
+                            </div>
+                            <div class="text-muted" style="font-size:.7rem;">Days Left</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 rounded" style="background:#0f172a;">
+                            <div class="text-info fw-bold fs-5">{{ total_backers }}</div>
+                            <div class="text-muted" style="font-size:.7rem;">Backers</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Funding info -->
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-header border-secondary bg-transparent">
+                <h5 class="card-title text-white mb-0">
+                    <i class="fas fa-coins text-warning me-2"></i> Funding Info
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush" style="background:transparent;">
+                    <li class="list-group-item d-flex justify-content-between bg-transparent border-secondary py-2">
+                        <span class="text-muted small">Goal Amount</span>
+                        <span class="text-white fw-bold">₱{{ project.target_amount|floatformat:"2g" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between bg-transparent border-secondary py-2">
+                        <span class="text-muted small">Raised So Far</span>
+                        <span class="text-success fw-bold">₱{{ total_raised|floatformat:"2g" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between bg-transparent border-secondary py-2">
+                        <span class="text-muted small">Profit Rate</span>
+                        <span class="text-warning fw-bold">{{ project.profit_rate }}%</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between bg-transparent border-secondary py-2">
+                        <span class="text-muted small">Max per Backer</span>
+                        <span class="text-white">
+                            {% if project.max_investment %}₱{{ project.max_investment|floatformat:"2g" }}{% else %}No limit{% endif %}
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between bg-transparent border-secondary py-2">
+                        <span class="text-muted small">Category</span>
+                        <span class="badge bg-secondary">{{ project.get_category_display }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Verification status -->
+        <div class="card bg-dark mb-4"
+             style="border: 2px solid {% if project.is_verified %}#22c55e{% else %}#f59e0b{% endif %};">
+            <div class="card-body text-center py-3">
+                {% if project.is_verified %}
+                    <i class="fas fa-shield-alt text-success fa-2x mb-2 d-block"></i>
+                    <div class="text-success fw-bold">Verified Campaign</div>
+                    <small class="text-muted">This campaign has been reviewed and approved.</small>
+                {% else %}
+                    <i class="fas fa-clock text-warning fa-2x mb-2 d-block"></i>
+                    <div class="text-warning fw-bold">Awaiting Verification</div>
+                    <small class="text-muted">Under review. Will go live once approved by admin.</small>
+                    {% if request.user.is_staff %}
+                    <div class="mt-3 d-flex gap-2 justify-content-center">
+                        <form action="{% url 'campaigns:verify_campaign' project.pk %}" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="approve">
+                            <button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i> Approve</button>
+                        </form>
+                        <form action="{% url 'campaigns:verify_campaign' project.pk %}" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="reject">
+                            <button class="btn btn-sm btn-danger"><i class="fas fa-times me-1"></i> Reject</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Top backers -->
+        {% if backers %}
+        <div class="card bg-dark border-secondary">
+            <div class="card-header border-secondary bg-transparent">
+                <h5 class="card-title text-white mb-0">
+                    <i class="fas fa-trophy text-warning me-2"></i> Top Backers
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% for inv in backers %}
+                <div class="d-flex align-items-center gap-2 px-3 py-2" style="border-bottom:1px solid #1e293b;">
+                    <div style="width:32px;height:32px;min-width:32px;border-radius:50%;background:#334155;display:flex;align-items:center;justify-content:center;font-size:.8rem;">
+                        <span class="text-white fw-bold">{{ inv.investor.name|first|upper }}</span>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="text-white small fw-bold">{{ inv.investor.name }}</div>
+                        <div class="text-muted" style="font-size:.7rem;">{{ inv.created_at|date:"M d, Y" }}</div>
+                    </div>
+                    <div class="text-success fw-bold small">₱{{ inv.amount }}</div>
+                </div>
+                {% endfor %}
+                {% if total_backers > 5 %}
+                <div class="p-2 text-center">
+                    <a href="{% url 'campaigns:backers_list' project.pk %}" class="btn btn-sm btn-outline-info w-100">
+                        <i class="fas fa-users me-1"></i> View all {{ total_backers }} backers
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<style>
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+</style>
+
+{% endblock %}

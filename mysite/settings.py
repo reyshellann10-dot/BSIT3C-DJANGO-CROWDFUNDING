@@ -112,6 +112,6 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # --- LOGIN / LOGOUT REDIRECTS ---
-LOGIN_URL = '/login/'                  # IDINAGDAG NATIN ITO
-LOGIN_REDIRECT_URL = '/campaigns/'
-LOGOUT_REDIRECT_URL = '/'
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/campaigns/'   # fallback after login (role-based redirect overrides this in the view)
+LOGOUT_REDIRECT_URL = '/'            # back to public landing page after logout

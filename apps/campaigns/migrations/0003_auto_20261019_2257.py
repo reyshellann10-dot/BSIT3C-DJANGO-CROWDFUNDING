@@ -7,7 +7,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
+        # 'image' is already created by 0001_initial; adding it again breaks
+        # fresh databases (Duplicate column name 'image').
+        migrations.AlterField(
             model_name='project',
             name='image',
             field=models.ImageField(blank=True, null=True, upload_to='campaigns/'),

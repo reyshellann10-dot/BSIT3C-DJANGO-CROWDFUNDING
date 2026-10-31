@@ -1,0 +1,176 @@
+{% extends 'theme/base.html' %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+
+        <!-- BACK + PRINT -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{% url 'investments:investment_detail' txn.investment.pk %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i> Back
+            </a>
+            <button onclick="window.print()" class="btn btn-outline-info btn-sm">
+                <i class="fas fa-print me-1"></i> Print Receipt
+            </button>
+        </div>
+
+        <!-- RECEIPT CARD -->
+        <div class="card border-secondary" id="receiptCard"
+             style="background: #1e293b; border-radius:16px; overflow:hidden;">
+
+            <!-- HEADER BAND -->
+            <div class="text-center py-4" style="background: linear-gradient(135deg, #16a34a, #0ea5e9);">
+                <i class="fas fa-leaf fa-2x text-white mb-2 d-block"></i>
+                <h3 class="text-white fw-bold mb-0">CrowdFarm</h3>
+                <small class="text-white opacity-75">Investment Receipt</small>
+            </div>
+
+            <div class="card-body px-4 py-4">
+
+                <!-- STATUS BADGE -->
+                <div class="text-center mb-4">
+                    {% if txn.status == 'completed' %}
+                        <span class="badge bg-success fs-6 px-4 py-2">
+                            <i class="fas fa-check-circle me-1"></i> Payment Confirmed
+                        </span>
+                    {% elif txn.status == 'pending' %}
+                        <span class="badge bg-warning text-dark fs-6 px-4 py-2">
+                            <i class="fas fa-clock me-1"></i> Payment Pending
+                        </span>
+                    {% elif txn.status == 'failed' %}
+                        <span class="badge bg-danger fs-6 px-4 py-2">
+                            <i class="fas fa-times-circle me-1"></i> Payment Failed
+                        </span>
+                    {% elif txn.status == 'refunded' %}
+                        <span class="badge bg-secondary fs-6 px-4 py-2">
+                            <i class="fas fa-undo me-1"></i> Refunded
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- AMOUNT -->
+                <div class="text-center mb-4">
+                    <div class="text-muted small mb-1">Amount Paid</div>
+                    <div class="text-white fw-bold" style="font-size:2.5rem;">₱{{ txn.amount }}</div>
+                </div>
+
+                <!-- RECEIPT DETAILS -->
+                <div style="background:#0f172a; border-radius:12px; padding:1.25rem;">
+                    <div class="row g-0">
+
+                        <div class="col-12 d-flex justify-content-between py-2" style="border-bottom:1px solid #334155;">
+                            <span class="text-muted">Reference #</span>
+                            <code class="text-info fw-bold">{{ txn.reference_number|default:'—' }}</code>
+                        </div>
+
+                        <div class="col-12 d-flex justify-content-between py-2" style="border-bottom:1px solid #334155;">
+                            <span class="text-muted">Transaction ID</span>
+                            <span class="text-white">#{{ txn.pk }}</span>
+                        </div>
+
+                        <div class="col-12 d-flex justify-content-between py-2" style="border-bottom:1px solid #334155;">
+                            <span class="text-muted">Date & Time</span>
+                            <span class="text-white">{{ txn.created_at|date:"F d, Y — g:i A" }}</span>
+                        </div>
+
+                        <div class="col-12 d-flex justify-content-between py-2" style="border-bottom:1px solid #334155;">
+                            <span class="text-muted">Payment Method</span>
+                            <span class="text-white">
+                                {% if txn.payment_method == 'gcash' %}
+                                    <i class="fas fa-mobile-alt text-primary me-1"></i>GCash
+                                {% elif txn.payment_method == 'bank_transfer' %}
+                                    <i class="fas fa-university me-1"></i>Bank Transfer
+                                {% elif txn.payment_method == 'maya' %}
+                                    <i class="fas fa-wallet text-info me-1"></i>Maya
+                                {% elif txn.payment_method == 'check' %}
+                                    <i class="fas fa-file-invoice text-warning me-1"></i>Check
+                                {% else %}
+                                    <i class="fas fa-money-bill-wave text-success me-1"></i>Cash
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <!-- INVESTOR -->
+                        <div class="col-12 py-3" style="border-bottom:1px solid #334155;">
+                            <div class="text-muted small mb-2">Investor</div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div style="width:38px;height:38px;border-radius:50%;background:#334155;display:flex;align-items:center;justify-content:center;">
+                                    <span class="text-white fw-bold">{{ txn.investment.investor.name|first|upper }}</span>
+                                </div>
+                                <div>
+                                    <div class="text-white fw-bold">{{ txn.investment.investor.name }}</div>
+                                    {% if txn.investment.investor.contact %}
+                                    <small class="text-muted">{{ txn.investment.investor.contact }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CAMPAIGN -->
+                        <div class="col-12 py-3" style="border-bottom:1px solid #334155;">
+                            <div class="text-muted small mb-2">Campaign / Project</div>
+                            <div class="text-white fw-bold">{{ txn.investment.project.title }}</div>
+                            {% if txn.investment.project.farmer_name %}
+                            <small class="text-muted"><i class="fas fa-user-tie me-1"></i>{{ txn.investment.project.farmer_name }}</small>
+                            {% endif %}
+                            {% if txn.investment.project.location %}
+                            <small class="text-muted ms-2"><i class="fas fa-map-marker-alt me-1"></i>{{ txn.investment.project.location }}</small>
+                            {% endif %}
+                        </div>
+
+                        <!-- INVESTMENT SUMMARY -->
+                        <div class="col-12 py-3">
+                            <div class="text-muted small mb-2">Investment Summary</div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Principal</span>
+                                <span class="text-white">₱{{ txn.investment.amount }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Shares</span>
+                                <span class="text-white">{{ txn.investment.shares }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Expected Profit ({{ txn.investment.project.profit_rate }}%)</span>
+                                <span class="text-success">₱{{ txn.investment.profit }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between pt-2 fw-bold" style="border-top:1px solid #334155;">
+                                <span class="text-white">Expected Total Return</span>
+                                <span class="text-info">₱{{ txn.investment.total_return }}</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- NOTES -->
+                {% if txn.investment.notes %}
+                <div class="mt-3 p-3 rounded" style="background:#0f172a; border-left:4px solid #0ea5e9;">
+                    <small class="text-muted d-block mb-1">Investor Note</small>
+                    <p class="text-white mb-0 small" style="white-space:pre-wrap;">{{ txn.investment.notes }}</p>
+                </div>
+                {% endif %}
+
+                <!-- FOOTER NOTE -->
+                <div class="text-center mt-4 text-muted small">
+                    <i class="fas fa-shield-alt me-1"></i>
+                    This is an official receipt from CrowdFarm.
+                    Please keep this for your records.
+                </div>
+
+            </div>
+        </div><!-- /receipt card -->
+
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn, .navbar-vertical, .page-header { display: none !important; }
+    body { background: #fff !important; color: #000 !important; }
+    #receiptCard { border: 1px solid #ccc !important; background: #fff !important; }
+    #receiptCard * { color: #000 !important; }
+    code { background: #f0f0f0 !important; }
+}
+</style>
+
+{% endblock %}

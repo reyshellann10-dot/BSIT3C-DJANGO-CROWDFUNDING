@@ -1,0 +1,311 @@
+{% extends 'theme/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+/* ═══════════════════════════════════════════════════════
+   MY PORTFOLIO — Investor Personal View
+   Amber / Gold accent on dark forest background
+═══════════════════════════════════════════════════════ */
+
+.pf-page { padding: .5rem 0 3rem; }
+
+/* ── Hero banner ── */
+.pf-hero {
+  background: linear-gradient(145deg, #120e00, #1a1400, #221b00);
+  border: 1px solid #2d2000; border-radius: 16px;
+  padding: 1.75rem 2rem; margin-bottom: 1.75rem;
+  position: relative; overflow: hidden;
+}
+.pf-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f59e0b' fill-opacity='0.04'%3E%3Ccircle cx='20' cy='20' r='6'/%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.pf-hero::after {
+  content: ''; position: absolute; right: -60px; top: -60px;
+  width: 220px; height: 220px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,158,11,.07) 0%, transparent 65%);
+}
+.pf-hero-inner { position: relative; z-index: 1; }
+.pf-hero-label {
+  font-size: .65rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(245,158,11,.7); display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+}
+.pf-hero h2 { font-size: 1.45rem; font-weight: 800; color: #fff; letter-spacing: -.02em; margin-bottom: 4px; }
+.pf-hero h2 em { font-style: normal; color: #f59e0b; }
+.pf-hero p  { font-size: .85rem; color: #5a4400; margin: 0; }
+
+/* ── No profile notice ── */
+.pf-notice {
+  background: rgba(245,158,11,.06); border: 1px solid rgba(245,158,11,.18);
+  border-radius: 12px; padding: 1.5rem 1.75rem; margin-bottom: 1.75rem;
+  display: flex; align-items: flex-start; gap: 14px;
+}
+.pf-notice-icon {
+  width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+  background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.2);
+  display: flex; align-items: center; justify-content: center;
+  color: #f59e0b; font-size: 1rem;
+}
+.pf-notice h5 { font-size: .9rem; font-weight: 700; color: #fde68a; margin-bottom: 4px; }
+.pf-notice p  { font-size: .82rem; color: #5a4400; margin: 0; line-height: 1.55; }
+.pf-notice p a { color: #f59e0b; font-weight: 600; text-decoration: none; }
+.pf-notice p a:hover { text-decoration: underline; }
+
+/* ── Stat cards ── */
+.pf-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.75rem; }
+@media(max-width:860px){ .pf-stats{grid-template-columns:repeat(2,1fr);} }
+@media(max-width:480px){ .pf-stats{grid-template-columns:1fr;} }
+
+.pf-stat {
+  background: #120e00; border: 1px solid #2d2000; border-radius: 13px;
+  padding: 1.1rem 1.25rem; transition: border-color .18s;
+}
+.pf-stat:hover { border-color: #f59e0b; }
+.pf-stat-label { font-size: .65rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #3d2d00; margin-bottom: 8px; }
+.pf-stat-val   { font-size: 1.7rem; font-weight: 800; line-height: 1; letter-spacing: -.03em; }
+.pf-stat-sub   { font-size: .7rem; color: #3d2d00; margin-top: 5px; }
+.pf-val-amber  { color: #fbbf24; }
+.pf-val-green  { color: #4ade80; }
+.pf-val-sky    { color: #38bdf8; }
+.pf-val-muted  { color: #94a3b8; }
+
+/* ── Section heading ── */
+.pf-sh {
+  font-size: .67rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: #3d2d00; display: flex; align-items: center; gap: 9px; margin-bottom: 1.1rem;
+}
+.pf-sh::after { content: ''; flex: 1; height: 1px; background: #1a1400; }
+.pf-sh i { color: #f59e0b; }
+
+/* ── Table ── */
+.pf-table-wrap {
+  background: #120e00; border: 1px solid #2d2000;
+  border-radius: 14px; overflow: hidden;
+}
+.pf-table { width: 100%; border-collapse: collapse; }
+.pf-table thead th {
+  font-size: .63rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: #3d2d00; padding: .7rem 1.2rem;
+  background: #0a0800; border-bottom: 1px solid #2d2000; white-space: nowrap;
+}
+.pf-table tbody td {
+  padding: .85rem 1.2rem; border-bottom: 1px solid #1a1400;
+  font-size: .83rem; color: #5a4400; vertical-align: middle;
+}
+.pf-table tbody tr:last-child td { border-bottom: none; }
+.pf-table tbody tr:hover td { background: rgba(245,158,11,.025); }
+
+/* cell types */
+.pf-td-project { font-weight: 700; color: #fde68a; }
+.pf-td-crop    { font-size: .72rem; color: #3d2d00; margin-top: 2px; }
+.pf-td-amount  { color: #fbbf24; font-weight: 700; }
+.pf-td-profit  { color: #4ade80; font-weight: 600; }
+.pf-td-return  { color: #38bdf8; font-weight: 600; }
+
+/* project image thumb */
+.pf-thumb {
+  width: 38px; height: 38px; border-radius: 8px; object-fit: cover;
+  background: #1a1400; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #f59e0b; font-size: 13px;
+}
+
+/* status badge */
+.pf-badge { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: .67rem; font-weight: 700; }
+.pb-ongoing   { background: rgba(34,197,94,.1);  color: #4ade80; border: 1px solid rgba(34,197,94,.2); }
+.pb-completed { background: rgba(245,158,11,.1); color: #fbbf24; border: 1px solid rgba(245,158,11,.2); }
+.pb-cancelled { background: rgba(244,63,94,.1);  color: #fb7185; border: 1px solid rgba(244,63,94,.2); }
+.pb-draft     { background: rgba(100,116,139,.1);color: #94a3b8; border: 1px solid rgba(100,116,139,.2); }
+
+/* profit rate pill */
+.pf-rate-pill {
+  font-size: .7rem; font-weight: 700; color: #22c55e;
+  background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.15);
+  border-radius: 99px; padding: 2px 9px;
+}
+
+/* progress bar inside table */
+.pf-mini-bar { width: 80px; height: 4px; background: #1a1400; border-radius: 99px; overflow: hidden; margin-bottom: 3px; }
+.pf-mini-fill { height: 100%; background: linear-gradient(90deg,#f59e0b,#d97706); border-radius: 99px; }
+
+/* empty */
+.pf-empty { text-align: center; padding: 3rem 1rem; }
+.pf-empty i { font-size: 2rem; color: #2d2000; display: block; margin-bottom: 12px; }
+.pf-empty p { color: #3d2d00; font-size: .88rem; }
+</style>
+
+<div class="pf-page">
+
+  <!-- ── HERO ── -->
+  <div class="pf-hero">
+    <div class="pf-hero-inner">
+      <div class="pf-hero-label"><i class="fas fa-briefcase"></i> Investor Portfolio</div>
+      <h2>My <em>Portfolio</em></h2>
+      <p>Your personal investment summary — all campaigns you have funded.</p>
+    </div>
+  </div>
+
+  {% if not investor %}
+  <!-- ── NO PROFILE NOTICE ── -->
+  <div class="pf-notice">
+    <div class="pf-notice-icon"><i class="fas fa-info-circle"></i></div>
+    <div>
+      <h5>No Investor Profile Linked</h5>
+      <p>
+        Your account is not yet linked to an investor profile.
+        To see your portfolio, an administrator needs to connect your account to your investor record.
+        <br><br>
+        In the meantime, you can still
+        <a href="{% url 'campaigns:user_portal' %}">browse active campaigns</a> or
+        <a href="{% url 'investments:investment_create' %}">make a new investment</a>.
+      </p>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- ── STAT CARDS ── -->
+  <div class="pf-stats">
+    <div class="pf-stat">
+      <div class="pf-stat-label">Total Invested</div>
+      <div class="pf-stat-val pf-val-amber">₱{{ total_invested|floatformat:"2g" }}</div>
+      <div class="pf-stat-sub">Across all campaigns</div>
+    </div>
+    <div class="pf-stat">
+      <div class="pf-stat-label">Est. Profit</div>
+      <div class="pf-stat-val pf-val-green">₱{{ total_profit|floatformat:"2g" }}</div>
+      <div class="pf-stat-sub">Based on profit rates</div>
+    </div>
+    <div class="pf-stat">
+      <div class="pf-stat-label">Total Return</div>
+      <div class="pf-stat-val pf-val-sky">₱{{ total_return|floatformat:"2g" }}</div>
+      <div class="pf-stat-sub">Principal + profit</div>
+    </div>
+    <div class="pf-stat">
+      <div class="pf-stat-label">Total Shares</div>
+      <div class="pf-stat-val pf-val-muted">{{ total_shares }}</div>
+      <div class="pf-stat-sub">{{ investments|length }} investment{{ investments|length|pluralize }}</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── INVESTMENTS TABLE ── -->
+  <div class="pf-sh">
+    <i class="fas fa-coins"></i>
+    My Investments
+    {% if investor %}
+    <span style="font-weight:400;color:#2d2000;">&nbsp;({{ investments|length }})</span>
+    {% endif %}
+  </div>
+
+  <div class="pf-table-wrap">
+    <div style="overflow-x: auto;">
+      <table class="pf-table">
+        <thead>
+          <tr>
+            <th>Campaign</th>
+            <th>Amount Invested</th>
+            <th>Shares</th>
+            <th>Share %</th>
+            <th>Profit Rate</th>
+            <th>Est. Profit</th>
+            <th>Total Return</th>
+            <th>Progress</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if investor and investments %}
+            {% for inv in investments %}
+            <tr>
+              <!-- Campaign -->
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  {% if inv.project.image %}
+                    <img src="{{ inv.project.image.url }}" class="pf-thumb" alt="{{ inv.project.title }}">
+                  {% else %}
+                    <div class="pf-thumb"><i class="fas fa-seedling"></i></div>
+                  {% endif %}
+                  <div>
+                    <div class="pf-td-project">{{ inv.project.title }}</div>
+                    <div class="pf-td-crop">{{ inv.project.crop_type|default:"Agriculture" }}</div>
+                  </div>
+                </div>
+              </td>
+              <!-- Amount -->
+              <td class="pf-td-amount">₱{{ inv.amount|floatformat:"2g" }}</td>
+              <!-- Shares -->
+              <td style="color:#fde68a;">{{ inv.shares }}</td>
+              <!-- Share % -->
+              <td style="color:#94a3b8;">{{ inv.share_percentage }}%</td>
+              <!-- Profit Rate -->
+              <td><span class="pf-rate-pill">{{ inv.project.profit_rate }}%</span></td>
+              <!-- Est. Profit -->
+              <td class="pf-td-profit">₱{{ inv.profit|floatformat:"2g" }}</td>
+              <!-- Total Return -->
+              <td class="pf-td-return">₱{{ inv.total_return|floatformat:"2g" }}</td>
+              <!-- Progress -->
+              <td>
+                <div class="pf-mini-bar">
+                  <div class="pf-mini-fill" style="width:{{ inv.project.progress_percentage }}%;"></div>
+                </div>
+                <div style="font-size:.68rem;color:#3d2d00;">{{ inv.project.progress_percentage }}%</div>
+              </td>
+              <!-- Status -->
+              <td>
+                {% if inv.project.status == 'ongoing' %}
+                  <span class="pf-badge pb-ongoing">Ongoing</span>
+                {% elif inv.project.status == 'completed' %}
+                  <span class="pf-badge pb-completed">Completed</span>
+                {% elif inv.project.status == 'cancelled' %}
+                  <span class="pf-badge pb-cancelled">Cancelled</span>
+                {% else %}
+                  <span class="pf-badge pb-draft">{{ inv.project.status|title }}</span>
+                {% endif %}
+              </td>
+              <!-- Date -->
+              <td>{{ inv.created_at|date:"M j, Y" }}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="10" class="pf-empty">
+                <i class="fas fa-coins"></i>
+                <p>
+                  {% if not investor %}
+                  Link your investor profile to see your investments here.
+                  {% else %}
+                  You have not made any investments yet.
+                  <br>
+                  <a href="{% url 'campaigns:user_portal' %}"
+                     style="color:#f59e0b;font-weight:600;text-decoration:none;">
+                    Browse campaigns →
+                  </a>
+                  {% endif %}
+                </p>
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  {% if investor %}
+  <div style="display:flex;gap:10px;margin-top:1.25rem;flex-wrap:wrap;">
+    <a href="{% url 'investments:investment_create' %}"
+       style="padding:10px 20px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#0a0800;border-radius:10px;font-weight:700;font-size:.84rem;text-decoration:none;display:inline-flex;align-items:center;gap:7px;">
+      <i class="fas fa-plus-circle"></i> New Investment
+    </a>
+    <a href="{% url 'campaigns:user_portal' %}"
+       style="padding:10px 20px;background:transparent;border:1.5px solid #2d2000;color:#5a4400;border-radius:10px;font-weight:600;font-size:.84rem;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:border-color .12s;">
+      <i class="fas fa-seedling"></i> Browse Campaigns
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

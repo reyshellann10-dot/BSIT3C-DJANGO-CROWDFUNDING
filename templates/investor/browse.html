@@ -1,0 +1,174 @@
+{% extends 'investor/base_investor.html' %}
+{% block title %}Browse Campaigns — Investor Portal{% endblock %}
+
+{% block inv_content %}
+<style>
+.inv-page { padding: .25rem 0 2rem; }
+.inv-hero-sm {
+  background: linear-gradient(135deg, #120e00, #1a1400);
+  border: 1px solid #2d2000; border-radius: 14px;
+  padding: 1.4rem 1.75rem; margin-bottom: 1.5rem;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.inv-hero-sm h3 { font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 3px; }
+.inv-hero-sm p  { font-size: .82rem; color: #3d2d00; margin: 0; }
+.inv-search-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.inv-search-wrap { position: relative; flex: 1; min-width: 200px; }
+.inv-search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #2d2000; font-size: 12px; pointer-events: none; }
+.inv-search {
+  width: 100%; padding: 9px 13px 9px 35px;
+  background: #120e00; border: 1.5px solid #2d2000; border-radius: 9px;
+  color: #fde68a; font-size: .86rem; outline: none; font-family: inherit;
+  transition: border-color .15s;
+}
+.inv-search:focus { border-color: #f59e0b; }
+.inv-search::placeholder { color: #2d2000; }
+.inv-btn-search {
+  padding: 9px 18px; background: linear-gradient(135deg,#f59e0b,#d97706);
+  color: #0a0800; border: none; border-radius: 9px; font-size: .84rem;
+  font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity .12s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.inv-btn-search:hover { opacity: .88; }
+.inv-btn-clear {
+  padding: 9px 16px; background: transparent; border: 1.5px solid #2d2000;
+  color: #3d2d00; border-radius: 9px; font-size: .84rem; font-weight: 600;
+  cursor: pointer; font-family: inherit; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 5px;
+  transition: border-color .12s;
+}
+.inv-btn-clear:hover { border-color: #f59e0b; color: #f59e0b; }
+
+/* section heading */
+.inv-sh { font-size: .67rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: #3d2d00; display: flex; align-items: center; gap: 9px; margin-bottom: 1.1rem; }
+.inv-sh::after { content:''; flex:1; height:1px; background:#1a1400; }
+.inv-sh i { color: #f59e0b; }
+
+/* grid — same card styles as dashboard */
+.inv-campaigns-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 14px; margin-bottom: 2rem; }
+.inv-campaign-card  { background:#120e00;border:1px solid #2d2000;border-radius:13px;overflow:hidden;display:flex;flex-direction:column;transition:transform .16s,border-color .16s,box-shadow .16s; }
+.inv-campaign-card:hover { transform:translateY(-2px);border-color:#f59e0b;box-shadow:0 10px 24px -8px rgba(245,158,11,.12); }
+.inv-camp-img { width:100%;height:145px;background:#1a1400;overflow:hidden;display:flex;align-items:center;justify-content:center; }
+.inv-camp-img img { width:100%;height:145px;object-fit:cover; }
+.inv-camp-noimg { color:#2d2000;display:flex;flex-direction:column;align-items:center;gap:6px; }
+.inv-camp-noimg i { font-size:1.6rem; }
+.inv-camp-body { padding:13px 14px;flex:1;display:flex;flex-direction:column; }
+.inv-camp-tag { font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#f59e0b;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.15);border-radius:99px;padding:2px 9px;width:fit-content;margin-bottom:7px; }
+.inv-camp-title { font-size:.9rem;font-weight:700;color:#fde68a;line-height:1.3;margin-bottom:7px; }
+.inv-camp-meta { font-size:.73rem;color:#3d2d00;display:flex;flex-direction:column;gap:3px;margin-bottom:10px; }
+.inv-camp-meta span { display:flex;align-items:center;gap:5px; }
+.inv-camp-meta i { color:#f59e0b;width:11px; }
+.inv-prog-bar { height:4px;background:#1a1400;border-radius:99px;overflow:hidden;margin-bottom:4px; }
+.inv-prog-fill { height:100%;background:linear-gradient(90deg,#f59e0b,#d97706);border-radius:99px; }
+.inv-prog-meta { display:flex;justify-content:space-between;font-size:.68rem;color:#3d2d00;margin-bottom:10px; }
+.inv-prog-meta .raised { color:#fde68a;font-weight:600; }
+.inv-camp-foot { margin-top:auto;padding-top:10px;border-top:1px solid #1a1400;display:flex;align-items:center;justify-content:space-between; }
+.inv-return-pill { font-size:.68rem;font-weight:700;color:#22c55e;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.15);border-radius:99px;padding:2px 9px; }
+.inv-invest-btn { padding:6px 13px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#0a0800;border:none;border-radius:7px;font-size:.75rem;font-weight:800;cursor:pointer;text-decoration:none;transition:opacity .12s;font-family:inherit; }
+.inv-invest-btn:hover { opacity:.88;color:#0a0800; }
+
+/* pagination */
+.inv-pager { display:flex;gap:6px;justify-content:center;margin-top:.5rem; }
+.inv-page-btn { padding:6px 13px;border-radius:7px;font-size:.8rem;font-weight:600;background:#120e00;border:1px solid #2d2000;color:#3d2d00;text-decoration:none;transition:all .12s; }
+.inv-page-btn:hover,.inv-page-btn.active { background:#f59e0b;border-color:#f59e0b;color:#0a0800; }
+
+/* empty */
+.inv-empty { text-align:center;padding:3rem 1rem; }
+.inv-empty i { font-size:2rem;color:#2d2000;display:block;margin-bottom:10px; }
+.inv-empty p { color:#3d2d00;font-size:.88rem; }
+</style>
+
+<div class="inv-page">
+  <!-- Hero -->
+  <div class="inv-hero-sm">
+    <div>
+      <h3><i class="fas fa-seedling me-2" style="color:#f59e0b;"></i> Browse Campaigns</h3>
+      <p>Find agricultural projects to invest in and grow your portfolio.</p>
+    </div>
+    <a href="{% url 'investments:investment_create' %}" class="inv-btn-search">
+      <i class="fas fa-plus"></i> New Investment
+    </a>
+  </div>
+
+  <!-- Search -->
+  <form method="GET">
+    <div class="inv-search-row">
+      <div class="inv-search-wrap">
+        <i class="fas fa-search"></i>
+        <input type="text" name="q" value="{{ query }}" class="inv-search"
+               placeholder="Search by title, farmer, crop type…">
+      </div>
+      <button type="submit" class="inv-btn-search"><i class="fas fa-search"></i> Search</button>
+      {% if query %}
+      <a href="{% url 'investor_portal:browse' %}" class="inv-btn-clear"><i class="fas fa-times"></i> Clear</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <!-- Heading -->
+  <div class="inv-sh">
+    <i class="fas fa-leaf"></i>
+    {% if query %}Results for "{{ query }}"{% else %}All Active Campaigns{% endif %}
+    <span style="font-weight:400;margin-left:-6px;">&nbsp;({{ campaigns.paginator.count }})</span>
+  </div>
+
+  <!-- Grid -->
+  {% if campaigns %}
+  <div class="inv-campaigns-grid">
+    {% for project in campaigns %}
+    <div class="inv-campaign-card">
+      <div class="inv-camp-img">
+        {% if project.image %}<img src="{{ project.image.url }}" alt="{{ project.title }}">
+        {% else %}<div class="inv-camp-noimg"><i class="fas fa-seedling"></i><span>No Image</span></div>
+        {% endif %}
+      </div>
+      <div class="inv-camp-body">
+        <span class="inv-camp-tag">{{ project.crop_type|default:"Agriculture" }}</span>
+        <div class="inv-camp-title">{{ project.title }}</div>
+        <div class="inv-camp-meta">
+          {% if project.farmer_name %}<span><i class="fas fa-user-circle"></i> {{ project.farmer_name }}</span>{% endif %}
+          {% if project.location %}<span><i class="fas fa-map-marker-alt"></i> {{ project.location }}</span>{% endif %}
+          <span><i class="fas fa-calendar"></i> Ends {{ project.end_date|date:"M j, Y" }}</span>
+        </div>
+        <div class="inv-prog-bar">
+          <div class="inv-prog-fill" style="width:{{ project.progress_percentage }}%;"></div>
+        </div>
+        <div class="inv-prog-meta">
+          <span class="raised">₱{{ project.total_raised|floatformat:"2g" }} raised</span>
+          <span>{{ project.progress_percentage }}% of ₱{{ project.target_amount|floatformat:"2g" }}</span>
+        </div>
+        <div class="inv-camp-foot">
+          <span class="inv-return-pill"><i class="fas fa-chart-line me-1"></i>{{ project.profit_rate }}% return</span>
+          <a href="{% url 'investments:investment_create' %}" class="inv-invest-btn">
+            <i class="fas fa-coins me-1"></i> Invest
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if campaigns.paginator.num_pages > 1 %}
+  <div class="inv-pager">
+    {% if campaigns.has_previous %}
+    <a href="?page={{ campaigns.previous_page_number }}{% if query %}&q={{ query }}{% endif %}" class="inv-page-btn"><i class="fas fa-chevron-left"></i></a>
+    {% endif %}
+    {% for n in campaigns.paginator.page_range %}
+    <a href="?page={{ n }}{% if query %}&q={{ query }}{% endif %}"
+       class="inv-page-btn {% if campaigns.number == n %}active{% endif %}">{{ n }}</a>
+    {% endfor %}
+    {% if campaigns.has_next %}
+    <a href="?page={{ campaigns.next_page_number }}{% if query %}&q={{ query }}{% endif %}" class="inv-page-btn"><i class="fas fa-chevron-right"></i></a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="inv-empty">
+    <i class="fas fa-seedling"></i>
+    <p>No active campaigns found{% if query %} for "{{ query }}"{% endif %}.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

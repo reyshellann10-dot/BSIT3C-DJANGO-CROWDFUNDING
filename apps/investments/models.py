@@ -1,9 +1,16 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Sum  # IDINAGDAG NATIN ITO PARA SA CALCULATION
+from django.db.models import Sum
 
 
 class Investment(models.Model):
+    PAYMENT_CHOICES = [
+        ('gcash',         'GCash'),
+        ('paymaya',       'PayMaya'),
+        ('bank_transfer', 'Bank Transfer'),
+        ('paypal',        'PayPal'),
+    ]
+
     investor = models.ForeignKey(
         'investors.Investor', related_name='investments', on_delete=models.CASCADE
     )
@@ -14,6 +21,9 @@ class Investment(models.Model):
         max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)]
     )
     shares = models.PositiveIntegerField(default=1)
+    payment_method = models.CharField(
+        max_length=20, choices=PAYMENT_CHOICES, default='gcash'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

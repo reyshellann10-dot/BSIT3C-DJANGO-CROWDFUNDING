@@ -4,11 +4,14 @@ from . import views
 app_name = 'campaigns'
 
 urlpatterns = [
+    # Admin dashboard
     path('', views.dashboard, name='dashboard'),
+
+    # User portal
+    path('portal/', views.user_portal, name='user_portal'),
+
     path('projects/', views.project_list, name='project_list'),
     path('projects/create/', views.project_create, name='project_create'),
-    
-    # IDINAGDAG NATIN ITO PARA SA EDIT AT DELETE:
     path('projects/<int:pk>/update/', views.project_update, name='project_update'),
     path('projects/<int:pk>/delete/', views.project_delete, name='project_delete'),
 ]

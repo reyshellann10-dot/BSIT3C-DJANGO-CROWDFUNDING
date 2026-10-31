@@ -1,0 +1,627 @@
+{% extends 'theme/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+/* ═══════════════════════════════════════════════════════
+   USER PORTAL — Emerald / Amber Marketplace Theme
+═══════════════════════════════════════════════════════ */
+.up-page { padding: .5rem 0 3rem; }
+
+/* ── Hero ── */
+.up-hero {
+  background: linear-gradient(145deg, #071a10 0%, #0a2518 50%, #0f3320 100%);
+  border: 1px solid #1a3d25; border-radius: 16px;
+  padding: 2rem 2.2rem; margin-bottom: 1.75rem;
+  position: relative; overflow: hidden;
+}
+.up-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%2322c55e' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.up-hero::after {
+  content: ''; position: absolute; right: -60px; top: -60px;
+  width: 260px; height: 260px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,158,11,.07) 0%, transparent 65%);
+  pointer-events: none;
+}
+.up-hero-inner { position: relative; z-index: 1; }
+.up-hero-label {
+  font-size: .65rem; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: rgba(34,197,94,.7);
+  margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+}
+.up-hero h2 {
+  font-size: 1.55rem; font-weight: 800; color: #fff;
+  letter-spacing: -.02em; line-height: 1.2; margin-bottom: 6px;
+}
+.up-hero h2 em { font-style: normal; color: #22c55e; }
+.up-hero p { color: rgba(255,255,255,.55); font-size: .88rem; margin: 0; max-width: 520px; }
+.up-stats-strip { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 1.5rem; }
+.up-stat-pill {
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
+  border-radius: 10px; padding: 10px 16px; min-width: 100px;
+}
+.up-stat-pill-num { font-size: 1.2rem; font-weight: 800; color: #22c55e; line-height: 1; }
+.up-stat-pill-lbl { font-size: .64rem; color: rgba(255,255,255,.4); margin-top: 3px; text-transform: uppercase; letter-spacing: .06em; }
+.up-stat-pill.amber .up-stat-pill-num { color: #f59e0b; }
+
+/* ── Toolbar ── */
+.up-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.up-search-box { position: relative; flex: 1; min-width: 220px; }
+.up-search-box i { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #1a3d25; font-size: 13px; pointer-events: none; }
+.up-search {
+  width: 100%; padding: 10px 14px 10px 38px;
+  background: #0a1f10; border: 1.5px solid #1a3d25;
+  border-radius: 10px; color: #e2e8f0; font-size: .88rem; outline: none;
+  transition: border-color .15s; font-family: inherit;
+}
+.up-search:focus { border-color: #22c55e; }
+.up-search::placeholder { color: #1a3d25; }
+.up-btn {
+  padding: 10px 20px; border-radius: 10px; border: none;
+  font-weight: 700; font-size: .84rem; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: opacity .15s; font-family: inherit; text-decoration: none;
+}
+.up-btn-primary { background: linear-gradient(135deg,#22c55e,#16a34a); color: #fff; }
+.up-btn-ghost   { background: transparent; border: 1.5px solid #1a3d25; color: #4d7a5a; }
+.up-btn:hover   { opacity: .88; }
+
+/* ── Section heading ── */
+.up-heading {
+  font-size: .67rem; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: #1a4728;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 1.2rem;
+}
+.up-heading::after { content: ''; flex: 1; height: 1px; background: #0a1f10; }
+
+/* ── Campaign cards ── */
+.up-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 16px; margin-bottom: 2rem;
+}
+.up-card {
+  background: #0a1a10; border: 1px solid #1a3d25;
+  border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;
+  transition: transform .18s, border-color .18s, box-shadow .18s;
+}
+.up-card:hover {
+  transform: translateY(-3px); border-color: #22c55e;
+  box-shadow: 0 14px 30px -10px rgba(34,197,94,.15);
+}
+.up-card-img {
+  width: 100%; height: 160px; background: #071a10; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.up-card-img img { width: 100%; height: 160px; object-fit: cover; }
+.up-card-no-img { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #1a3d25; }
+.up-card-no-img i { font-size: 1.8rem; }
+.up-card-body { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; }
+.up-card-tag {
+  display: inline-block; font-size: .65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: #22c55e; background: rgba(34,197,94,.08);
+  border: 1px solid rgba(34,197,94,.18); border-radius: 99px;
+  padding: 2px 10px; margin-bottom: 8px; width: fit-content;
+}
+.up-card-title { font-size: .95rem; font-weight: 700; color: #e2e8f0; line-height: 1.35; margin-bottom: 8px; }
+.up-card-meta  { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+.up-card-meta-item { font-size: .75rem; color: #1a4728; display: flex; align-items: center; gap: 6px; }
+.up-card-meta-item i { color: #22c55e; width: 12px; text-align: center; flex-shrink: 0; }
+.up-prog { margin-bottom: 12px; }
+.up-prog-bar { height: 5px; background: #0f2918; border-radius: 99px; overflow: hidden; margin-bottom: 5px; }
+.up-prog-fill { height: 100%; background: linear-gradient(90deg,#22c55e,#16a34a); border-radius: 99px; }
+.up-prog-meta { display: flex; justify-content: space-between; font-size: .7rem; color: #1a4728; }
+.up-prog-meta .raised { color: #d1fae5; font-weight: 600; }
+.up-card-foot {
+  margin-top: auto; padding-top: 12px; border-top: 1px solid #0f2918;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.up-return-badge {
+  font-size: .7rem; font-weight: 700; color: #f59e0b;
+  background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.18);
+  border-radius: 99px; padding: 3px 10px;
+}
+.up-invest-btn {
+  padding: 8px 16px; background: linear-gradient(135deg,#22c55e,#16a34a);
+  color: #fff; border: none; border-radius: 8px;
+  font-size: .8rem; font-weight: 700; cursor: pointer;
+  text-decoration: none; transition: opacity .15s, transform .1s;
+  font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
+}
+.up-invest-btn:hover { opacity: .88; color: #fff; transform: translateY(-1px); }
+.up-invest-btn-guest {
+  padding: 8px 16px; background: transparent;
+  color: #22c55e; border: 1.5px solid rgba(34,197,94,.3);
+  border-radius: 8px; font-size: .8rem; font-weight: 700;
+  text-decoration: none; transition: all .15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.up-invest-btn-guest:hover { background: rgba(34,197,94,.08); color: #22c55e; border-color: #22c55e; }
+
+/* ── Empty / pagination ── */
+.up-empty { text-align: center; padding: 4rem 1rem; }
+.up-empty i { font-size: 2.5rem; color: #0f2918; display: block; margin-bottom: 12px; }
+.up-empty p { color: #1a4728; font-size: .9rem; margin: 0; }
+.up-pager { display: flex; gap: 6px; justify-content: center; margin-top: .5rem; }
+.up-page-btn {
+  padding: 7px 14px; border-radius: 8px; font-size: .82rem; font-weight: 600;
+  background: #0a1a10; border: 1px solid #1a3d25; color: #4d7a5a;
+  text-decoration: none; transition: all .12s;
+}
+.up-page-btn:hover { border-color: #22c55e; color: #22c55e; }
+.up-page-btn.active { background: #22c55e; border-color: #22c55e; color: #fff; }
+
+/* ── Flash message for investment success ── */
+.up-flash {
+  padding: 12px 16px; border-radius: 11px; font-size: .87rem;
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 1.25rem; animation: slideDown .3s ease;
+}
+@keyframes slideDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+.up-flash-success { background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.25); color: #86efac; }
+.up-flash-error   { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25); color: #fca5a5; }
+
+/* ══════════════════════════════════════════════
+   INVEST NOW MODAL
+══════════════════════════════════════════════ */
+.inv-modal-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 1050;
+  background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center; padding: 1rem;
+}
+.inv-modal-backdrop.open { display: flex; }
+
+.inv-modal {
+  background: #0a1a10; border: 1px solid #1a3d25;
+  border-radius: 18px; width: 100%; max-width: 480px;
+  box-shadow: 0 24px 48px -12px rgba(0,0,0,.7);
+  animation: modalIn .25s ease;
+  overflow: hidden;
+}
+@keyframes modalIn { from{opacity:0;transform:scale(.95) translateY(10px)} to{opacity:1;transform:scale(1) translateY(0)} }
+
+.inv-modal-header {
+  background: linear-gradient(135deg, #071a10, #0a2518);
+  padding: 1.25rem 1.5rem;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  border-bottom: 1px solid #1a3d25;
+}
+.inv-modal-project-tag {
+  font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+  color: #22c55e; background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.2);
+  border-radius: 99px; padding: 2px 10px; margin-bottom: 6px; display: inline-block;
+}
+.inv-modal-title { font-size: 1rem; font-weight: 800; color: #fff; margin-bottom: 3px; line-height: 1.3; }
+.inv-modal-rate  { font-size: .78rem; color: #4d7a5a; display: flex; align-items: center; gap: 5px; }
+.inv-modal-rate i { color: #22c55e; }
+.inv-modal-close {
+  background: none; border: none; cursor: pointer;
+  color: #4d7a5a; font-size: 1.1rem; padding: 2px;
+  transition: color .12s; flex-shrink: 0; margin-left: 12px;
+}
+.inv-modal-close:hover { color: #fff; }
+
+.inv-modal-body { padding: 1.5rem; }
+
+.inv-field { margin-bottom: 16px; }
+.inv-label {
+  display: block; font-size: .72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em;
+  color: #4d7a5a; margin-bottom: 7px;
+}
+.inv-input {
+  width: 100%; padding: 10px 14px;
+  background: #071a10; border: 1.5px solid #1a3d25;
+  border-radius: 9px; color: #e2e8f0; font-size: .9rem;
+  outline: none; transition: border-color .15s; font-family: inherit;
+}
+.inv-input:focus { border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.1); }
+.inv-input::placeholder { color: #1a4728; }
+.inv-select {
+  width: 100%; padding: 10px 14px;
+  background: #071a10; border: 1.5px solid #1a3d25;
+  border-radius: 9px; color: #e2e8f0; font-size: .9rem;
+  outline: none; cursor: pointer; font-family: inherit;
+  transition: border-color .15s; appearance: none;
+}
+.inv-select:focus { border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.1); }
+
+/* payment method pills */
+.pay-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.pay-pill {
+  flex: 1; min-width: 90px;
+  padding: 10px 8px; border-radius: 9px;
+  border: 1.5px solid #1a3d25; background: #071a10;
+  color: #4d7a5a; font-size: .78rem; font-weight: 600;
+  cursor: pointer; text-align: center; transition: all .15s;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  position: relative;
+}
+.pay-pill input[type=radio] { position: absolute; opacity: 0; width: 0; height: 0; }
+.pay-pill i { font-size: 1.1rem; }
+.pay-pill:hover { border-color: #22c55e; color: #22c55e; background: rgba(34,197,94,.05); }
+.pay-pill.selected { border-color: #22c55e; color: #22c55e; background: rgba(34,197,94,.08); }
+
+/* profit preview */
+.inv-preview {
+  background: rgba(34,197,94,.05); border: 1px solid rgba(34,197,94,.12);
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 16px;
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+}
+.inv-preview-item { text-align: center; }
+.inv-preview-lbl  { font-size: .65rem; color: #1a4728; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+.inv-preview-val  { font-size: .95rem; font-weight: 700; color: #22c55e; }
+.inv-preview-val.amber { color: #f59e0b; }
+.inv-preview-val.sky   { color: #38bdf8; }
+
+.inv-modal-footer {
+  padding: 0 1.5rem 1.5rem;
+  display: flex; gap: 10px;
+}
+.inv-submit-btn {
+  flex: 1; padding: 12px;
+  background: linear-gradient(135deg,#22c55e,#16a34a);
+  border: none; border-radius: 10px; color: #fff;
+  font-size: .92rem; font-weight: 700; cursor: pointer;
+  font-family: inherit; transition: opacity .15s;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+}
+.inv-submit-btn:hover { opacity: .9; }
+.inv-cancel-btn {
+  padding: 12px 20px; background: transparent;
+  border: 1.5px solid #1a3d25; border-radius: 10px;
+  color: #4d7a5a; font-size: .88rem; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: all .15s;
+}
+.inv-cancel-btn:hover { border-color: rgba(239,68,68,.4); color: #f87171; }
+</style>
+
+<div class="up-page">
+
+  <!-- ── FLASH MESSAGES ── -->
+  {% if messages %}
+    {% for message in messages %}
+    <div class="up-flash {% if message.tags == 'success' %}up-flash-success{% else %}up-flash-error{% endif %}">
+      <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+      {{ message }}
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- ── HERO BANNER ── -->
+  <div class="up-hero">
+    <div class="up-hero-inner">
+      <div class="up-hero-label"><i class="fas fa-leaf"></i> Welcome to CrowdFarmV3</div>
+      <h2>Hello, <em>{{ user.first_name|default:user.username }}</em>! 🌱</h2>
+      <p>Discover verified agricultural campaigns and grow your wealth by supporting Filipino farmers.</p>
+      <div class="up-stats-strip">
+        <div class="up-stat-pill">
+          <div class="up-stat-pill-num">{{ total_campaigns }}</div>
+          <div class="up-stat-pill-lbl">Active</div>
+        </div>
+        <div class="up-stat-pill">
+          <div class="up-stat-pill-num">{{ total_completed }}</div>
+          <div class="up-stat-pill-lbl">Completed</div>
+        </div>
+        <div class="up-stat-pill">
+          <div class="up-stat-pill-num">{{ total_investors }}</div>
+          <div class="up-stat-pill-lbl">Investors</div>
+        </div>
+        <div class="up-stat-pill amber">
+          <div class="up-stat-pill-num">₱{{ total_raised|floatformat:"0g" }}</div>
+          <div class="up-stat-pill-lbl">Total Raised</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SEARCH ── -->
+  <form method="GET" action="">
+    <div class="up-toolbar">
+      <div class="up-search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" name="q" value="{{ query }}" class="up-search"
+               placeholder="Search campaigns by title, farmer, or crop…">
+      </div>
+      <button type="submit" class="up-btn up-btn-primary">
+        <i class="fas fa-search"></i> Search
+      </button>
+      {% if query %}
+      <a href="{% url 'campaigns:user_portal' %}" class="up-btn up-btn-ghost">
+        <i class="fas fa-times"></i> Clear
+      </a>
+      {% endif %}
+    </div>
+  </form>
+
+  <!-- ── HEADING ── -->
+  <div class="up-heading">
+    <i class="fas fa-seedling" style="color:#22c55e;"></i>
+    {% if query %}Results for "{{ query }}"{% else %}Active Campaigns{% endif %}
+    <span style="font-weight:400;color:#0a1f10;">&nbsp;({{ campaigns.paginator.count }})</span>
+  </div>
+
+  <!-- ── CAMPAIGN GRID ── -->
+  {% if campaigns %}
+  <div class="up-grid">
+    {% for project in campaigns %}
+    <div class="up-card">
+
+      <!-- Image -->
+      <div class="up-card-img">
+        {% if project.image %}
+          <img src="{{ project.image.url }}" alt="{{ project.title }}">
+        {% else %}
+          <div class="up-card-no-img">
+            <i class="fas fa-seedling"></i>
+            <span style="font-size:.72rem;">No Image</span>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Body -->
+      <div class="up-card-body">
+        <span class="up-card-tag">{{ project.crop_type|default:"Agriculture" }}</span>
+        <div class="up-card-title">{{ project.title }}</div>
+        <div class="up-card-meta">
+          {% if project.farmer_name %}
+          <div class="up-card-meta-item"><i class="fas fa-user-circle"></i> {{ project.farmer_name }}</div>
+          {% endif %}
+          {% if project.location %}
+          <div class="up-card-meta-item"><i class="fas fa-map-marker-alt"></i> {{ project.location }}</div>
+          {% endif %}
+          <div class="up-card-meta-item"><i class="fas fa-calendar-alt"></i> Ends {{ project.end_date|date:"M j, Y" }}</div>
+        </div>
+
+        <!-- Progress -->
+        <div class="up-prog">
+          <div class="up-prog-bar">
+            <div class="up-prog-fill" style="width:{{ project.progress_percentage }}%;"></div>
+          </div>
+          <div class="up-prog-meta">
+            <span class="raised">₱{{ project.total_raised|floatformat:"2g" }} raised</span>
+            <span>{{ project.progress_percentage }}% of ₱{{ project.target_amount|floatformat:"2g" }}</span>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="up-card-foot">
+          <span class="up-return-badge">
+            <i class="fas fa-chart-line me-1"></i>{{ project.profit_rate }}% return
+          </span>
+
+          {% if user.is_authenticated %}
+            <!-- Logged-in: open modal -->
+            <button type="button" class="up-invest-btn"
+                    onclick="openInvestModal(
+                      {{ project.pk }},
+                      '{{ project.title|escapejs }}',
+                      {{ project.profit_rate }},
+                      '{{ project.crop_type|default:"Agriculture"|escapejs }}'
+                    )">
+              <i class="fas fa-coins"></i> Invest Now
+            </button>
+          {% else %}
+            <!-- Guest: redirect to login -->
+            <a href="{% url 'login' %}?next={% url 'campaigns:user_portal' %}"
+               class="up-invest-btn-guest">
+              <i class="fas fa-sign-in-alt"></i> Login to Invest
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if campaigns.paginator.num_pages > 1 %}
+  <div class="up-pager">
+    {% if campaigns.has_previous %}
+    <a href="?page={{ campaigns.previous_page_number }}{% if query %}&q={{ query }}{% endif %}" class="up-page-btn">
+      <i class="fas fa-chevron-left"></i>
+    </a>
+    {% endif %}
+    {% for n in campaigns.paginator.page_range %}
+    <a href="?page={{ n }}{% if query %}&q={{ query }}{% endif %}"
+       class="up-page-btn {% if campaigns.number == n %}active{% endif %}">{{ n }}</a>
+    {% endfor %}
+    {% if campaigns.has_next %}
+    <a href="?page={{ campaigns.next_page_number }}{% if query %}&q={{ query }}{% endif %}" class="up-page-btn">
+      <i class="fas fa-chevron-right"></i>
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="up-empty">
+    <i class="fas fa-seedling"></i>
+    <p>No active campaigns found{% if query %} for "{{ query }}"{% endif %}.</p>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     INVEST NOW MODAL
+══════════════════════════════════════════════════ -->
+{% if user.is_authenticated %}
+<div class="inv-modal-backdrop" id="investModalBackdrop" onclick="closeOnBackdrop(event)">
+  <div class="inv-modal" id="investModal">
+
+    <!-- Header -->
+    <div class="inv-modal-header">
+      <div>
+        <div class="inv-modal-project-tag" id="modalTag">Agriculture</div>
+        <div class="inv-modal-title" id="modalTitle">Campaign Title</div>
+        <div class="inv-modal-rate">
+          <i class="fas fa-chart-line"></i>
+          <span id="modalRate">10</span>% estimated return on investment
+        </div>
+      </div>
+      <button class="inv-modal-close" onclick="closeInvestModal()" title="Close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Form -->
+    <form method="POST" id="investForm" action="">
+      {% csrf_token %}
+      <div class="inv-modal-body">
+
+        <!-- Amount -->
+        <div class="inv-field">
+          <label class="inv-label" for="modalAmount">
+            <i class="fas fa-peso-sign"></i> Investment Amount (₱)
+          </label>
+          <input type="number" id="modalAmount" name="amount" class="inv-input"
+                 placeholder="e.g. 5000" min="1" step="0.01" required
+                 oninput="updatePreview()">
+        </div>
+
+        <!-- Shares -->
+        <div class="inv-field">
+          <label class="inv-label" for="modalShares">
+            <i class="fas fa-layer-group"></i> Number of Shares
+          </label>
+          <input type="number" id="modalShares" name="shares" class="inv-input"
+                 placeholder="e.g. 10" min="1" step="1" value="1" required
+                 oninput="updatePreview()">
+        </div>
+
+        <!-- Payment method -->
+        <div class="inv-field">
+          <label class="inv-label"><i class="fas fa-credit-card"></i> Payment Method</label>
+          <div class="pay-pills" id="payPills">
+            <label class="pay-pill selected" onclick="selectPay(this, 'gcash')">
+              <input type="radio" name="payment_method" value="gcash" checked>
+              <i class="fas fa-mobile-alt"></i>
+              GCash
+            </label>
+            <label class="pay-pill" onclick="selectPay(this, 'paymaya')">
+              <input type="radio" name="payment_method" value="paymaya">
+              <i class="fas fa-wallet"></i>
+              PayMaya
+            </label>
+            <label class="pay-pill" onclick="selectPay(this, 'bank_transfer')">
+              <input type="radio" name="payment_method" value="bank_transfer">
+              <i class="fas fa-university"></i>
+              Bank
+            </label>
+            <label class="pay-pill" onclick="selectPay(this, 'paypal')">
+              <input type="radio" name="payment_method" value="paypal">
+              <i class="fab fa-paypal"></i>
+              PayPal
+            </label>
+          </div>
+        </div>
+
+        <!-- Live profit preview -->
+        <div class="inv-preview">
+          <div class="inv-preview-item">
+            <div class="inv-preview-lbl">Amount</div>
+            <div class="inv-preview-val amber" id="previewAmount">₱0.00</div>
+          </div>
+          <div class="inv-preview-item">
+            <div class="inv-preview-lbl">Est. Profit</div>
+            <div class="inv-preview-val" id="previewProfit">₱0.00</div>
+          </div>
+          <div class="inv-preview-item">
+            <div class="inv-preview-lbl">Total Return</div>
+            <div class="inv-preview-val sky" id="previewReturn">₱0.00</div>
+          </div>
+        </div>
+
+      </div><!-- /body -->
+
+      <div class="inv-modal-footer">
+        <button type="button" class="inv-cancel-btn" onclick="closeInvestModal()">
+          Cancel
+        </button>
+        <button type="submit" class="inv-submit-btn">
+          <i class="fas fa-coins"></i> Confirm Investment
+        </button>
+      </div>
+    </form>
+
+  </div><!-- /inv-modal -->
+</div><!-- /backdrop -->
+{% endif %}
+
+<script>
+// ── State ──────────────────────────────────────────────────────
+let currentRate = 10;
+
+// ── Open modal ─────────────────────────────────────────────────
+function openInvestModal(projectPk, title, rate, tag) {
+  currentRate = parseFloat(rate) || 10;
+
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalTag').textContent   = tag;
+  document.getElementById('modalRate').textContent  = rate;
+  document.getElementById('investForm').action = '/investments/invest/' + projectPk + '/';
+
+  // Reset fields
+  document.getElementById('modalAmount').value = '';
+  document.getElementById('modalShares').value = '1';
+  updatePreview();
+
+  // Reset payment pills
+  document.querySelectorAll('.pay-pill').forEach(p => p.classList.remove('selected'));
+  document.querySelector('.pay-pill').classList.add('selected');
+  document.querySelector('.pay-pill input').checked = true;
+
+  document.getElementById('investModalBackdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('modalAmount').focus(), 100);
+}
+
+// ── Close modal ────────────────────────────────────────────────
+function closeInvestModal() {
+  document.getElementById('investModalBackdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function closeOnBackdrop(e) {
+  if (e.target === document.getElementById('investModalBackdrop')) closeInvestModal();
+}
+
+// ── Payment pill selection ─────────────────────────────────────
+function selectPay(label, value) {
+  document.querySelectorAll('.pay-pill').forEach(p => p.classList.remove('selected'));
+  label.classList.add('selected');
+  label.querySelector('input').checked = true;
+}
+
+// ── Live profit preview ────────────────────────────────────────
+function updatePreview() {
+  const amount = parseFloat(document.getElementById('modalAmount').value) || 0;
+  const profit = (amount * currentRate) / 100;
+  const total  = amount + profit;
+  const fmt    = v => '₱' + v.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  document.getElementById('previewAmount').textContent = fmt(amount);
+  document.getElementById('previewProfit').textContent = fmt(profit);
+  document.getElementById('previewReturn').textContent = fmt(total);
+}
+
+// ── Close on Escape ────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeInvestModal();
+});
+
+// ── Auto-dismiss flash messages after 5s ──────────────────────
+document.querySelectorAll('.up-flash').forEach(el => {
+  setTimeout(() => {
+    el.style.transition = 'opacity .5s';
+    el.style.opacity    = '0';
+    setTimeout(() => el.remove(), 500);
+  }, 5000);
+});
+</script>
+
+{% endblock %}

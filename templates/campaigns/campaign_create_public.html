@@ -1,0 +1,183 @@
+{% extends 'theme/base.html' %}
+{% block content %}
+
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h2 class="page-title text-white mb-1">Start a Campaign</h2>
+        <p class="text-muted mb-0">Fill out the form below and we'll review your campaign before it goes live.</p>
+    </div>
+</div>
+
+<form method="POST" enctype="multipart/form-data">
+{% csrf_token %}
+<div class="row g-4">
+
+    <!-- STEP 1: STORY -->
+    <div class="col-lg-8">
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-header border-secondary bg-transparent">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success rounded-circle" style="width:28px;height:28px;line-height:28px;font-size:.85rem;">1</span>
+                    <h4 class="card-title text-white mb-0">Campaign Story</h4>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label text-white fw-bold">Campaign Title <span class="text-danger">*</span></label>
+                    {{ form.title }}
+                    {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white fw-bold">Category <span class="text-danger">*</span></label>
+                    {{ form.category }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white fw-bold">Your Story <span class="text-danger">*</span></label>
+                    {{ form.story }}
+                    <small class="text-muted">Tell investors who you are, your farming plan, and why they should support you.</small>
+                    {% if form.story.errors %}<div class="text-danger small mt-1">{{ form.story.errors.0 }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2: FUNDING GOAL -->
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-header border-secondary bg-transparent">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success rounded-circle" style="width:28px;height:28px;line-height:28px;font-size:.85rem;">2</span>
+                    <h4 class="card-title text-white mb-0">Funding Goal</h4>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-4">
+                        <label class="form-label text-white">Goal Amount (₱) <span class="text-danger">*</span></label>
+                        {{ form.target_amount }}
+                        {% if form.target_amount.errors %}<div class="text-danger small mt-1">{{ form.target_amount.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label text-white">Max per Backer (₱)</label>
+                        {{ form.max_investment }}
+                        <small class="text-muted d-block">Leave blank = no limit</small>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label text-white">Return Rate (%)</label>
+                        {{ form.profit_rate }}
+                        <small class="text-muted d-block">Expected profit for investors</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: TIMELINE -->
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-header border-secondary bg-transparent">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success rounded-circle" style="width:28px;height:28px;line-height:28px;font-size:.85rem;">3</span>
+                    <h4 class="card-title text-white mb-0">Timeline</h4>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-4">
+                        <label class="form-label text-white">Start Date</label>
+                        {{ form.start_date }}
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label text-white">Funding Deadline <span class="text-danger">*</span></label>
+                        {{ form.end_date }}
+                        <small class="text-muted d-block">Last day to accept investments</small>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label text-white">Harvest / Expiry Date</label>
+                        {{ form.harvest_date }}
+                        <small class="text-muted d-block">Expected product expiration</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 4: FARMER INFO -->
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-header border-secondary bg-transparent">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success rounded-circle" style="width:28px;height:28px;line-height:28px;font-size:.85rem;">4</span>
+                    <h4 class="card-title text-white mb-0">Your Information</h4>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-4">
+                        <label class="form-label text-white">Your Name / Farmer Name <span class="text-danger">*</span></label>
+                        {{ form.farmer_name }}
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label text-white">Crop / Product Type</label>
+                        {{ form.crop_type }}
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label text-white">Farm Location</label>
+                        {{ form.location }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT: Media + Verification -->
+    <div class="col-lg-4">
+
+        <!-- Media -->
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-header border-secondary bg-transparent">
+                <h4 class="card-title text-white mb-0"><i class="fas fa-photo-video text-info me-2"></i> Media</h4>
+            </div>
+            <div class="card-body">
+                <label class="form-label text-white">Campaign Photo</label>
+                {{ form.image }}
+                <label class="form-label text-white mt-3">Video URL</label>
+                {{ form.video_url }}
+                <small class="text-muted d-block">Paste a YouTube or Facebook video link</small>
+            </div>
+        </div>
+
+        <!-- Verification -->
+        <div class="card mb-4" style="background:#0f172a; border:2px solid #22c55e;">
+            <div class="card-header bg-transparent" style="border-color:#22c55e;">
+                <h4 class="card-title text-white mb-0">
+                    <i class="fas fa-shield-alt text-success me-2"></i> Verification Documents
+                </h4>
+                <small class="text-muted d-block mt-1">Required to prevent fraud and protect investors.</small>
+            </div>
+            <div class="card-body">
+                <div class="alert mb-3" style="background:#14532d44; border:1px solid #22c55e; color:#86efac;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Your campaign will be reviewed before going live. Please upload clear photos of your documents.
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white fw-bold">Government-Issued ID <span class="text-danger">*</span></label>
+                    {{ form.id_proof }}
+                    <small class="text-muted d-block">Driver's license, UMID, PhilSys, Passport, etc.</small>
+                    {% if form.id_proof.errors %}<div class="text-danger small mt-1">{{ form.id_proof.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white fw-bold">Land / Farm Proof <span class="text-danger">*</span></label>
+                    {{ form.land_proof }}
+                    <small class="text-muted d-block">Land title, lease agreement, or barangay certification.</small>
+                    {% if form.land_proof.errors %}<div class="text-danger small mt-1">{{ form.land_proof.errors.0 }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="fas fa-paper-plane me-2"></i> Submit Campaign
+            </button>
+            <a href="{% url 'campaigns:project_list' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+
+    </div>
+</div>
+</form>
+{% endblock %}

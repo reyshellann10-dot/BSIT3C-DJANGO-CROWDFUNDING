@@ -2,230 +2,419 @@
 {% load static %}
 
 {% block content %}
-<!-- Custom CSS for Dark Theme -->
 <style>
-    .card-custom {
-        background-color: #1e293b;
-        border-radius: 12px;
-        border: 1px solid #334155;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        color: #e2e8f0;
-    }
-    .welcome-banner {
-        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-        border-radius: 12px;
-        padding: 20px;
-        color: white;
-        border: 1px solid #475569;
-    }
-    .icon-box {
-        width: 50px; height: 50px;
-        border-radius: 10px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 24px;
-    }
-    .bg-purple-lt { background-color: rgba(139, 92, 246, 0.2); color: #a78bfa; }
-    .bg-green-lt { background-color: rgba(16, 185, 129, 0.2); color: #34d399; }
-    .bg-orange-lt { background-color: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-    .bg-blue-lt { background-color: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+/* ═══════════════════════════════════════════════════════════════
+   ADMIN HOME — Deep Crimson / Rose Management Theme
+   Distinct from user portal (green) and investor portal (amber)
+═══════════════════════════════════════════════════════════════ */
+
+.adm { font-family: 'Inter', sans-serif; }
+
+/* ── Page bg ── */
+.adm-page { background: #0c0608; min-height: 100vh; padding: 1.5rem 0 2.5rem; }
+
+/* ── Top banner ── */
+.adm-banner {
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: center; gap: 1rem;
+  background: linear-gradient(135deg, #1a0510 0%, #200a14 55%, #150310 100%);
+  border: 1px solid #3d0f22; border-radius: 16px;
+  padding: 1.5rem 2rem; margin-bottom: 1.75rem;
+  position: relative; overflow: hidden;
+}
+.adm-banner::before {
+  content: ''; position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23e11d48' fill-opacity='0.04'%3E%3Cpath d='M20 20c0-5.5-4.5-10-10-10S0 14.5 0 20s4.5 10 10 10 10-4.5 10-10zm10 0c0 5.5 4.5 10 10 10s10-4.5 10-10-4.5-10-10-10-10 4.5-10 10z'/%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.adm-banner::after {
+  content: ''; position: absolute; left: -80px; bottom: -80px;
+  width: 280px; height: 280px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(225,29,72,.06) 0%, transparent 65%);
+  pointer-events: none;
+}
+.adm-banner-left { position: relative; z-index: 1; }
+.adm-banner-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: .65rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: #f43f5e; background: rgba(244,63,94,.08); border: 1px solid rgba(244,63,94,.2);
+  border-radius: 99px; padding: 3px 12px; margin-bottom: 10px;
+}
+.adm-banner h2 {
+  font-size: 1.55rem; font-weight: 800; color: #fff;
+  letter-spacing: -.025em; margin-bottom: 5px;
+}
+.adm-banner h2 span { color: #f43f5e; }
+.adm-banner-sub { font-size: .83rem; color: #5c2233; }
+.adm-banner-meta {
+  display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px;
+}
+.adm-banner-chip {
+  display: flex; align-items: center; gap: 6px;
+  font-size: .75rem; color: #7f1d3d; font-weight: 500;
+}
+.adm-banner-chip i { color: #f43f5e; font-size: .7rem; }
+.adm-banner-right { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.adm-action-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 18px; border-radius: 10px; font-size: .82rem; font-weight: 700;
+  text-decoration: none; cursor: pointer; border: none; font-family: inherit;
+  transition: opacity .15s, transform .1s;
+}
+.adm-action-btn:hover { opacity: .88; transform: translateY(-1px); }
+.adm-action-btn-primary {
+  background: linear-gradient(135deg, #e11d48, #9f1239);
+  color: #fff; box-shadow: 0 6px 16px -6px rgba(225,29,72,.4);
+}
+.adm-action-btn-ghost {
+  background: rgba(244,63,94,.08); border: 1px solid rgba(244,63,94,.2);
+  color: #f43f5e;
+}
+.adm-status-dot {
+  display: flex; align-items: center; gap: 6px;
+  font-size: .72rem; color: #7f1d3d;
+}
+.adm-status-dot i { color: #22c55e; font-size: .45rem; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+
+/* ── Stat grid ── */
+.adm-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 1.75rem; }
+@media(max-width:900px){ .adm-stats{grid-template-columns:repeat(2,1fr);} }
+@media(max-width:520px){ .adm-stats{grid-template-columns:1fr;} }
+
+.adm-stat {
+  background: #100509; border: 1px solid #3d0f22;
+  border-radius: 14px; padding: 1.25rem 1.4rem;
+  position: relative; overflow: hidden;
+  transition: border-color .2s, transform .18s, box-shadow .18s;
+}
+.adm-stat:hover {
+  border-color: #f43f5e; transform: translateY(-2px);
+  box-shadow: 0 10px 28px -10px rgba(225,29,72,.2);
+}
+.adm-stat::after {
+  content: ''; position: absolute; top: 0; right: 0;
+  width: 70px; height: 70px; border-radius: 50%;
+  background: var(--sg, rgba(244,63,94,.07));
+  transform: translate(25px,-25px);
+}
+.adm-stat-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.adm-stat-label { font-size: .66rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #5c2233; }
+.adm-stat-icon {
+  width: 34px; height: 34px; border-radius: 9px; position: relative; z-index: 1;
+  display: flex; align-items: center; justify-content: center; font-size: 14px;
+  background: var(--ib, rgba(244,63,94,.1));
+  color: var(--ic, #f43f5e);
+  border: 1px solid var(--ib2, rgba(244,63,94,.2));
+}
+.adm-stat-val {
+  font-size: 1.9rem; font-weight: 800; color: #fff;
+  letter-spacing: -.03em; line-height: 1; margin-bottom: 6px;
+}
+.adm-stat-link {
+  font-size: .72rem; font-weight: 600; text-decoration: none;
+  color: var(--ic, #f43f5e); display: inline-flex; align-items: center; gap: 4px;
+  opacity: .7; transition: opacity .12s;
+}
+.adm-stat-link:hover { opacity: 1; }
+
+/* stat variants */
+.sv-rose   { --sg:rgba(244,63,94,.07);  --ib:rgba(244,63,94,.1);  --ic:#f43f5e; --ib2:rgba(244,63,94,.2); }
+.sv-orange { --sg:rgba(249,115,22,.07); --ib:rgba(249,115,22,.1); --ic:#fb923c; --ib2:rgba(249,115,22,.2); }
+.sv-violet { --sg:rgba(139,92,246,.07); --ib:rgba(139,92,246,.1); --ic:#a78bfa; --ib2:rgba(139,92,246,.2); }
+.sv-sky    { --sg:rgba(14,165,233,.07); --ib:rgba(14,165,233,.1); --ic:#38bdf8; --ib2:rgba(14,165,233,.2); }
+
+/* ── Charts ── */
+.adm-charts { display: grid; grid-template-columns: 5fr 3fr; gap: 14px; margin-bottom: 1.75rem; }
+@media(max-width:860px){ .adm-charts{grid-template-columns:1fr;} }
+
+.adm-panel {
+  background: #100509; border: 1px solid #3d0f22; border-radius: 14px; padding: 1.4rem;
+}
+.adm-panel-title {
+  font-size: .82rem; font-weight: 700; color: #e2e8f0;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 3px;
+}
+.adm-panel-title i { color: #f43f5e; }
+.adm-panel-sub { font-size: .7rem; color: #5c2233; margin-bottom: 1.2rem; }
+
+/* ── Recent table ── */
+.adm-table-panel { background: #100509; border: 1px solid #3d0f22; border-radius: 14px; overflow: hidden; }
+.adm-table-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.4rem; border-bottom: 1px solid #3d0f22;
+}
+.adm-table { width: 100%; border-collapse: collapse; }
+.adm-table thead th {
+  font-size: .64rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: #5c2233; padding: .7rem 1.3rem;
+  background: #0c0608; border-bottom: 1px solid #3d0f22; white-space: nowrap;
+}
+.adm-table tbody td {
+  padding: .8rem 1.3rem; border-bottom: 1px solid #1a0510;
+  font-size: .83rem; color: #7f1d3d; vertical-align: middle;
+}
+.adm-table tbody tr:last-child td { border-bottom: none; }
+.adm-table tbody tr:hover td { background: rgba(244,63,94,.03); }
+.adm-td-title { color: #fecdd3; font-weight: 600; }
+.adm-thumb {
+  width: 38px; height: 38px; border-radius: 8px; object-fit: cover;
+  background: #3d0f22; display: inline-flex; align-items: center;
+  justify-content: center; color: #f43f5e; font-size: 13px; flex-shrink: 0;
+}
+.adm-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 99px;
+  font-size: .67rem; font-weight: 700;
+}
+.ab-ongoing   { background: rgba(34,197,94,.1);  color: #4ade80; border: 1px solid rgba(34,197,94,.2); }
+.ab-draft     { background: rgba(100,116,139,.1);color: #94a3b8; border: 1px solid rgba(100,116,139,.2); }
+.ab-completed { background: rgba(249,115,22,.1); color: #fb923c; border: 1px solid rgba(249,115,22,.2); }
+.ab-cancelled { background: rgba(244,63,94,.1);  color: #fb7185; border: 1px solid rgba(244,63,94,.2); }
+.adm-view-all {
+  font-size: .75rem; font-weight: 600; color: #f43f5e; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 4px; opacity: .75; transition: opacity .12s;
+}
+.adm-view-all:hover { opacity: 1; }
 </style>
 
-<!-- 1. WELCOME BANNER -->
-<div class="welcome-banner mb-4 d-flex justify-content-between align-items-center">
-    <div>
-        <h3 class="mb-1 text-white">Welcome back to <span class="text-warning">Crowdfunding</span>!</h3>
-        <p class="text-muted mb-0">Here is the latest overview of your system.</p>
+<div class="adm adm-page">
+
+  <!-- ══ BANNER ══ -->
+  <div class="adm-banner">
+    <div class="adm-banner-left">
+      <div class="adm-banner-eyebrow">
+        <i class="fas fa-shield-halved"></i> Administration
+      </div>
+      <h2>System <span>Dashboard</span></h2>
+      <div class="adm-banner-sub">Full management overview — all data, all controls.</div>
+      <div class="adm-banner-meta">
+        <span class="adm-banner-chip"><i class="fas fa-circle"></i> System Online</span>
+        <span class="adm-banner-chip"><i class="fas fa-user"></i> {{ user.username }}</span>
+        <span class="adm-banner-chip">
+          <i class="fas fa-id-badge"></i>
+          {% if user.is_superuser %}Superuser{% else %}Staff{% endif %}
+        </span>
+      </div>
     </div>
-    <div>
-        <i class="fas fa-chart-line fa-3x text-primary"></i>
+    <div class="adm-banner-right">
+      <a href="{% url 'campaigns:project_create' %}" class="adm-action-btn adm-action-btn-primary">
+        <i class="fas fa-plus"></i> New Project
+      </a>
+      <a href="{% url 'campaigns:project_list' %}" class="adm-action-btn adm-action-btn-ghost">
+        <i class="fas fa-list"></i> All Projects
+      </a>
     </div>
+  </div>
+
+  <!-- ══ STATS ══ -->
+  <div class="adm-stats">
+    <div class="adm-stat sv-rose">
+      <div class="adm-stat-row">
+        <span class="adm-stat-label">Total Projects</span>
+        <span class="adm-stat-icon"><i class="fas fa-seedling"></i></span>
+      </div>
+      <div class="adm-stat-val">{{ total_projects }}</div>
+      <a href="{% url 'campaigns:project_list' %}" class="adm-stat-link">
+        View all <i class="fas fa-arrow-right" style="font-size:.55rem;"></i>
+      </a>
+    </div>
+
+    <div class="adm-stat sv-orange">
+      <div class="adm-stat-row">
+        <span class="adm-stat-label">Total Investors</span>
+        <span class="adm-stat-icon"><i class="fas fa-user-tie"></i></span>
+      </div>
+      <div class="adm-stat-val">{{ total_investors }}</div>
+      <a href="{% url 'investors:dashboard' %}" class="adm-stat-link">
+        View all <i class="fas fa-arrow-right" style="font-size:.55rem;"></i>
+      </a>
+    </div>
+
+    <div class="adm-stat sv-violet">
+      <div class="adm-stat-row">
+        <span class="adm-stat-label">Investments</span>
+        <span class="adm-stat-icon"><i class="fas fa-coins"></i></span>
+      </div>
+      <div class="adm-stat-val">{{ total_investments }}</div>
+      <a href="{% url 'investments:investment_list' %}" class="adm-stat-link">
+        View all <i class="fas fa-arrow-right" style="font-size:.55rem;"></i>
+      </a>
+    </div>
+
+    <div class="adm-stat sv-sky">
+      <div class="adm-stat-row">
+        <span class="adm-stat-label">Funds Raised</span>
+        <span class="adm-stat-icon"><i class="fas fa-wallet"></i></span>
+      </div>
+      <div class="adm-stat-val" style="font-size:1.45rem;">₱{{ total_amount|floatformat:"2g" }}</div>
+      <span class="adm-stat-link" style="cursor:default;">All campaigns combined</span>
+    </div>
+  </div>
+
+  <!-- ══ CHARTS ══ -->
+  <div class="adm-charts">
+    <div class="adm-panel">
+      <div class="adm-panel-title"><i class="fas fa-chart-bar"></i> Monthly Investment Volume</div>
+      <div class="adm-panel-sub">Total peso value invested per month across all campaigns</div>
+      <canvas id="barChart" style="max-height:260px;"></canvas>
+    </div>
+    <div class="adm-panel">
+      <div class="adm-panel-title"><i class="fas fa-chart-pie"></i> Campaign Status</div>
+      <div class="adm-panel-sub">Breakdown by current project status</div>
+      <canvas id="pieChart" style="max-height:220px;margin-top:.5rem;"></canvas>
+    </div>
+  </div>
+
+  <!-- ══ RECENT PROJECTS ══ -->
+  <div class="adm-table-panel mb-4">
+    <div class="adm-table-top">
+      <div>
+        <div class="adm-panel-title" style="margin-bottom:2px;">
+          <i class="fas fa-clock-rotate-left"></i> Recent Projects
+        </div>
+        <div style="font-size:.7rem;color:#5c2233;">Last 5 projects added to the system</div>
+      </div>
+      <a href="{% url 'campaigns:project_list' %}" class="adm-view-all">
+        View all <i class="fas fa-arrow-right" style="font-size:.6rem;"></i>
+      </a>
+    </div>
+    <table class="adm-table">
+      <thead>
+        <tr>
+          <th>Image</th><th>Title</th><th>Target</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in recent_projects %}
+        <tr>
+          <td>
+            {% if p.image %}
+              <img src="{{ p.image.url }}" class="adm-thumb" alt="{{ p.title }}">
+            {% else %}
+              <div class="adm-thumb"><i class="fas fa-seedling"></i></div>
+            {% endif %}
+          </td>
+          <td class="adm-td-title">{{ p.title }}</td>
+          <td>₱{{ p.target_amount|floatformat:"2g" }}</td>
+          <td>
+            {% if p.status == 'ongoing' %}
+              <span class="adm-badge ab-ongoing">Ongoing</span>
+            {% elif p.status == 'completed' %}
+              <span class="adm-badge ab-completed">Completed</span>
+            {% elif p.status == 'cancelled' %}
+              <span class="adm-badge ab-cancelled">Cancelled</span>
+            {% else %}
+              <span class="adm-badge ab-draft">{{ p.status|title }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" style="text-align:center;padding:2.5rem;color:#5c2233;">
+            <i class="fas fa-folder-open d-block mb-2" style="font-size:1.5rem;opacity:.25;"></i>
+            No projects yet.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══ RECENT INVESTMENTS ══ -->
+  <div class="adm-table-panel">
+    <div class="adm-table-top">
+      <div>
+        <div class="adm-panel-title" style="margin-bottom:2px;">
+          <i class="fas fa-coins"></i> Recent Investments
+        </div>
+        <div style="font-size:.7rem;color:#5c2233;">Last 5 investments made on the platform</div>
+      </div>
+      <a href="{% url 'investments:investment_list' %}" class="adm-view-all">
+        View all <i class="fas fa-arrow-right" style="font-size:.6rem;"></i>
+      </a>
+    </div>
+    <table class="adm-table">
+      <thead>
+        <tr>
+          <th>Investor</th>
+          <th>Campaign</th>
+          <th>Amount</th>
+          <th>Payment</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inv in recent_investments %}
+        <tr>
+          <td class="adm-td-title">{{ inv.investor.name }}</td>
+          <td style="color:#fecdd3;">{{ inv.project.title }}</td>
+          <td style="color:#fb923c;font-weight:700;">₱{{ inv.amount|floatformat:"2g" }}</td>
+          <td>
+            <span class="adm-badge" style="background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.2);">
+              {{ inv.get_payment_method_display }}
+            </span>
+          </td>
+          <td style="color:#5c2233;">{{ inv.created_at|date:"M j, Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" style="text-align:center;padding:2.5rem;color:#5c2233;">
+            <i class="fas fa-coins d-block mb-2" style="font-size:1.5rem;opacity:.25;"></i>
+            No investments yet.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
 </div>
 
-<!-- 2. STATS CARDS -->
-<div class="row row-deck row-cards mb-4">
-    <div class="col-sm-6 col-lg-3">
-        <div class="card card-custom p-3">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="text-muted text-uppercase small fw-bold">Total Projects</div>
-                    <div class="h1 mb-0 fw-bold text-white">{{ total_projects }}</div>
-                </div>
-                <div class="icon-box bg-purple-lt"><i class="fas fa-folder"></i></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="card card-custom p-3">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="text-muted text-uppercase small fw-bold">Total Investors</div>
-                    <div class="h1 mb-0 fw-bold text-white">{{ total_investors }}</div>
-                </div>
-                <div class="icon-box bg-green-lt"><i class="fas fa-users"></i></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="card card-custom p-3">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="text-muted text-uppercase small fw-bold">Total Investments</div>
-                    <div class="h1 mb-0 fw-bold text-white">{{ total_investments }}</div>
-                </div>
-                <div class="icon-box bg-orange-lt"><i class="fas fa-coins"></i></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="card card-custom p-3">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="text-muted text-uppercase small fw-bold">Funds Raised</div>
-                    <!-- FORMAT: ₱12,303,000.00 (May comma) -->
-                    <div class="h1 mb-0 fw-bold text-white">₱{{ total_amount|floatformat:"2g" }}</div>
-                </div>
-                <div class="icon-box bg-blue-lt"><i class="fas fa-wallet"></i></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- 3. CHARTS SECTION -->
-<div class="row mb-4">
-    <!-- Bar Chart -->
-    <div class="col-lg-8">
-        <div class="card card-custom h-100">
-            <div class="card-body">
-                <h4 class="card-title text-white mb-4">Monthly Investments</h4>
-                <canvas id="barChart" style="max-height: 300px;"></canvas>
-            </div>
-        </div>
-    </div>
-    <!-- Pie Chart -->
-    <div class="col-lg-4">
-        <div class="card card-custom h-100">
-            <div class="card-body text-center">
-                <h4 class="card-title text-white mb-4">Project Status</h4>
-                <canvas id="pieChart" style="max-height: 250px;"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- 4. RECENT PROJECTS TABLE -->
-<div class="row">
-    <div class="col-md-12">
-        <div class="card card-custom">
-            <div class="card-header border-0">
-                <h3 class="card-title text-white">Recent Projects</h3>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-dark table-hover card-table mb-0">
-                    <thead>
-                        <tr>
-                            <th>Image</th><th>Title</th><th>Target</th><th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for project in recent_projects %}
-                        <tr>
-                            <td>
-                                {% if project.image %}
-                                <img src="{{ project.image.url }}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 5px;">
-                                {% else %}
-                                <span class="text-muted">No Image</span>
-                                {% endif %}
-                            </td>
-                            <td class="fw-bold">{{ project.title }}</td>
-                            <td>₱{{ project.target_amount }}</td>
-                            <td><span class="badge bg-primary">{{ project.status|title }}</span></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- CHART.JS SCRIPT -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // 1. Bar Chart (Monthly Investments)
-    const barCtx = document.getElementById('barChart');
-    const chartLabels = JSON.parse('{{ chart_labels|safe }}');
-    const chartAmounts = JSON.parse('{{ chart_amounts|safe }}');
-
-    new Chart(barCtx, {
-        type: 'bar',
-        data: {
-            labels: chartLabels.length ? chartLabels : ['No Data'],
-            datasets: [{
-                label: 'Investments',
-                data: chartAmounts.length ? chartAmounts : [0],
-                backgroundColor: '#6366f1', // Indigo Blue
-                borderRadius: 6,
-                barThickness: 40
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { 
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let value = context.raw || 0;
-                            // Ipapakita ang buong number sa tooltip kapag tinapat ang mouse
-                            return '₱' + value.toLocaleString(); 
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: { 
-                    beginAtZero: true, 
-                    grid: { color: '#334155' }, 
-                    ticks: { 
-                        color: '#94a3b8',
-                        callback: function(value) {
-                            // IDINAGDAG NATIN ITO: Gagawing "K" o "M" ang mga malalaking numero
-                            if (value >= 1000000) return '₱' + (value / 1000000) + 'M';
-                            if (value >= 1000) return '₱' + (value / 1000) + 'K';
-                            return '₱' + value;
-                        }
-                    } 
-                },
-                x: { 
-                    grid: { display: false }, 
-                    ticks: { color: '#94a3b8' } 
-                }
-            }
-        }
-    });
-
-    // 2. Pie Chart (Project Status)
-    const pieCtx = document.getElementById('pieChart');
-    const statusLabels = JSON.parse('{{ status_labels|safe }}');
-    const statusCounts = JSON.parse('{{ status_counts|safe }}');
-
-    new Chart(pieCtx, {
-        type: 'doughnut',
-        data: {
-            labels: statusLabels.length ? statusLabels : ['No Projects'],
-            datasets: [{
-                data: statusCounts.length ? statusCounts : [1],
-                backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            cutout: '75%',
-            plugins: {
-                legend: { position: 'bottom', labels: { color: '#94a3b8', usePointStyle: true, padding: 20 } }
-            }
-        }
-    });
+(function(){
+  new Chart(document.getElementById('barChart'),{
+    type:'bar',
+    data:{
+      labels: {{ chart_labels|safe }},
+      datasets:[{
+        label:'Investments (₱)',
+        data: {{ chart_amounts|safe }},
+        backgroundColor:'rgba(225,29,72,.65)',
+        hoverBackgroundColor:'#e11d48',
+        borderRadius:6, barThickness:32
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>'₱'+(c.raw||0).toLocaleString()}}
+      },
+      scales:{
+        y:{beginAtZero:true,grid:{color:'#1a0510'},
+           ticks:{color:'#5c2233',callback:v=>v>=1e6?'₱'+(v/1e6)+'M':v>=1e3?'₱'+(v/1e3)+'K':'₱'+v}},
+        x:{grid:{display:false},ticks:{color:'#5c2233'}}
+      }
+    }
+  });
+  new Chart(document.getElementById('pieChart'),{
+    type:'doughnut',
+    data:{
+      labels: {{ status_labels|safe }},
+      datasets:[{
+        data: {{ status_counts|safe }},
+        backgroundColor:['#e11d48','#f97316','#a78bfa','#38bdf8'],
+        borderWidth:0, hoverOffset:4
+      }]
+    },
+    options:{
+      responsive:true, cutout:'70%',
+      plugins:{
+        legend:{position:'bottom',labels:{color:'#5c2233',usePointStyle:true,padding:14,font:{size:11}}}
+      }
+    }
+  });
+})();
 </script>
 {% endblock %}

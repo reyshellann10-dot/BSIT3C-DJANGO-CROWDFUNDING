@@ -11,9 +11,48 @@ from .forms import ProjectForm
 from apps.investments.models import Investment
 from apps.investors.models import Investor
 
-# --- DASHBOARD ---
+
+# --- USER PORTAL (regular users) ---
+@login_required(login_url='login')
+def user_portal(request):
+    """Dashboard for non-admin users — shows public campaigns and personal stats."""
+    # All live/ongoing campaigns (public browsing)
+    status_filter = request.GET.get('status', '').strip()
+    query = request.GET.get('q', '').strip()
+
+    campaigns_qs = Project.objects.filter(status='ongoing').order_by('-id')
+    if query:
+        campaigns_qs = campaigns_qs.filter(
+            Q(title__icontains=query) |
+            Q(farmer_name__icontains=query) |
+            Q(crop_type__icontains=query)
+        )
+
+    paginator = Paginator(campaigns_qs, 6)
+    campaigns = paginator.get_page(request.GET.get('page', 1))
+
+    # Platform-wide stats (public info)
+    total_campaigns     = Project.objects.filter(status='ongoing').count()
+    total_completed     = Project.objects.filter(status='completed').count()
+    total_investors     = Investor.objects.count()
+    total_raised        = Investment.objects.aggregate(t=Sum('amount'))['t'] or 0
+
+    return render(request, 'campaigns/user_portal.html', {
+        'campaigns':         campaigns,
+        'query':             query,
+        'total_campaigns':   total_campaigns,
+        'total_completed':   total_completed,
+        'total_investors':   total_investors,
+        'total_raised':      total_raised,
+    })
+
+
+# --- ADMIN DASHBOARD ---
 @login_required(login_url='login')
 def dashboard(request):
+    # Redirect non-admin users to their portal
+    if not (request.user.is_staff or request.user.is_superuser):
+        return redirect('campaigns:user_portal')
     # 1. Basic Stats
     total_projects = Project.objects.count()
     total_investments = Investment.objects.count()
@@ -54,10 +93,15 @@ def dashboard(request):
     })
 
 # --- PROJECT CRUD ---
-@login_required(login_url='login')
+# Public campaign browse page. Guests may view it; only logged-in users can
+# invest (enforced again in apps.investments.views.invest_now).
 def project_list(request):
     query = request.GET.get('q', '').strip()
     qs = Project.objects.all().order_by('-id')
+    # The public grid only shows live campaigns. Staff keep the full management
+    # list (drafts, completed, cancelled) on the same URL.
+    if not (request.user.is_staff or request.user.is_superuser):
+        qs = qs.filter(status='ongoing')
     if query:
         qs = qs.filter(Q(title__icontains=query))
     paginator = Paginator(qs, 10)

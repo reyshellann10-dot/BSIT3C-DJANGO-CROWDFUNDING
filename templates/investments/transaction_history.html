@@ -1,0 +1,583 @@
+{% extends 'theme/base.html' %}
+{% block content %}
+
+<!-- ── PAGE HEADER ───────────────────────────────────────────────────── -->
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h2 class="page-title text-white mb-1">
+            <i class="fas fa-bolt text-warning me-2"></i> Transaction History
+        </h2>
+        <p class="text-muted mb-0">
+            Real-time investment &amp; payment log &nbsp;
+            <span class="badge bg-success" style="animation:blink 1.5s infinite;">● LIVE</span>
+        </p>
+    </div>
+    <div class="col-auto ms-auto">
+        <a href="{% url 'investments:investment_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Investments
+        </a>
+    </div>
+</div>
+
+<!-- ── SUMMARY STATS ─────────────────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+    {% if summary.is_filtered %}
+    <!-- Show filtered counts when a search/filter is active -->
+    <div class="col-6 col-sm-3">
+        <div class="card text-center p-3" style="background:#1e3a5f; border:1px solid #3b82f6;">
+            <div class="fw-bold fs-4" style="color:#60a5fa;">{{ summary.filtered_total }}</div>
+            <div class="text-muted small">Results Found</div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-3">
+        <div class="card text-center p-3" style="background:#14532d; border:1px solid #22c55e;">
+            <div class="text-success fw-bold fs-4">₱{{ summary.filtered_amount|floatformat:"2g" }}</div>
+            <div class="text-muted small">Filtered Amount</div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-3">
+        <div class="card bg-dark border-secondary text-center p-3">
+            <div class="text-warning fw-bold fs-4">{{ summary.total }}</div>
+            <div class="text-muted small">Total (All)</div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-3">
+        <div class="card bg-dark border-secondary text-center p-3">
+            <div class="text-info fw-bold fs-4">₱{{ summary.total_amount|floatformat:"2g" }}</div>
+            <div class="text-muted small">All-Time Amount</div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-6 col-sm-3">
+        <div class="card bg-dark border-secondary text-center p-3">
+            <div class="text-warning fw-bold fs-4">{{ summary.total }}</div>
+            <div class="text-muted small">Total Transactions</div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-3">
+        <div class="card bg-dark border-secondary text-center p-3">
+            <div class="text-success fw-bold fs-4">₱{{ summary.total_amount|floatformat:"2g" }}</div>
+            <div class="text-muted small">Total Amount</div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-3">
+        <div class="card bg-dark border-secondary text-center p-3">
+            <div class="text-info fw-bold fs-4">{{ summary.completed }}</div>
+            <div class="text-muted small">Completed</div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-3">
+        <div class="card bg-dark border-secondary text-center p-3">
+            <div class="text-warning fw-bold fs-4">{{ summary.pending }}</div>
+            <div class="text-muted small">Pending</div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- ── SEARCH & FILTER BAR ────────────────────────────────────────────── -->
+<div class="card bg-dark border-secondary mb-4" id="filterCard">
+    <div class="card-body py-3">
+        <form method="GET" id="filterForm" class="row g-2 align-items-end">
+            <!-- Search box -->
+            <div class="col-12 col-md-5">
+                <label class="form-label text-muted small mb-1">Search</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-muted">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" name="q" id="searchInput"
+                           class="form-control bg-dark text-white border-secondary"
+                           placeholder="Investor name, campaign, or ref #..."
+                           value="{{ query|default:'' }}"
+                           autocomplete="off">
+                    {% if query %}
+                    <button type="button" class="btn btn-outline-secondary" onclick="clearField('searchInput','q')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="col-6 col-md-2">
+                <label class="form-label text-muted small mb-1">Status</label>
+                <select name="status" class="form-select bg-dark text-white border-secondary">
+                    <option value="">All Status</option>
+                    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>✅ Completed</option>
+                    <option value="pending"   {% if status_filter == 'pending'   %}selected{% endif %}>⏳ Pending</option>
+                    <option value="failed"    {% if status_filter == 'failed'    %}selected{% endif %}>❌ Failed</option>
+                    <option value="refunded"  {% if status_filter == 'refunded'  %}selected{% endif %}>↩ Refunded</option>
+                </select>
+            </div>
+
+            <!-- Payment -->
+            <div class="col-6 col-md-2">
+                <label class="form-label text-muted small mb-1">Payment</label>
+                <select name="payment" class="form-select bg-dark text-white border-secondary">
+                    <option value="">All Methods</option>
+                    <option value="cash"          {% if payment_filter == 'cash'          %}selected{% endif %}>💵 Cash</option>
+                    <option value="gcash"         {% if payment_filter == 'gcash'         %}selected{% endif %}>📱 GCash</option>
+                    <option value="bank_transfer" {% if payment_filter == 'bank_transfer' %}selected{% endif %}>🏦 Bank Transfer</option>
+                    <option value="maya"          {% if payment_filter == 'maya'          %}selected{% endif %}>👛 Maya</option>
+                    <option value="check"         {% if payment_filter == 'check'         %}selected{% endif %}>📄 Check</option>
+                </select>
+            </div>
+
+            <!-- Buttons -->
+            <div class="col-12 col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-success flex-fill">
+                    <i class="fas fa-search me-1"></i> Search
+                </button>
+                {% if query or status_filter or payment_filter %}
+                <a href="{% url 'investments:transaction_history' %}" class="btn btn-outline-danger" title="Clear all filters">
+                    <i class="fas fa-times me-1"></i> Clear
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ── SEARCH RESULTS BANNER ─────────────────────────────────────────── -->
+{% if summary.is_filtered %}
+<div class="alert mb-4 d-flex align-items-center gap-3"
+     style="background:#1e3a5f; border:1px solid #3b82f6; color:#93c5fd;">
+    <i class="fas fa-filter fa-lg"></i>
+    <div>
+        <strong>{{ summary.filtered_total }} result{{ summary.filtered_total|pluralize }}</strong> found
+        {% if query %} for <strong>"{{ query }}"</strong>{% endif %}
+        {% if status_filter %} · Status: <strong>{{ status_filter|capfirst }}</strong>{% endif %}
+        {% if payment_filter %} · Payment: <strong>{{ payment_filter|capfirst }}</strong>{% endif %}
+        — total <strong class="text-success">₱{{ summary.filtered_amount|floatformat:"2g" }}</strong>
+    </div>
+    <a href="{% url 'investments:transaction_history' %}" class="ms-auto btn btn-sm btn-outline-light">
+        <i class="fas fa-times me-1"></i> Clear filters
+    </a>
+</div>
+{% endif %}
+
+<!-- ── RESULTS ────────────────────────────────────────────────────────── -->
+{% if transactions %}
+
+<!-- Card-style rows for easy reading -->
+<div class="mb-3 d-flex align-items-center justify-content-between">
+    <span class="text-muted small">
+        Showing {{ transactions.start_index }}–{{ transactions.end_index }} of {{ transactions.paginator.count }}
+    </span>
+    <!-- View toggle -->
+    <div class="btn-group btn-group-sm" role="group">
+        <button type="button" class="btn btn-outline-secondary active" id="btnTable" onclick="setView('table')">
+            <i class="fas fa-table me-1"></i> Table
+        </button>
+        <button type="button" class="btn btn-outline-secondary" id="btnCards" onclick="setView('cards')">
+            <i class="fas fa-th-large me-1"></i> Cards
+        </button>
+    </div>
+</div>
+
+<!-- TABLE VIEW -->
+<div id="tableView">
+    <div class="card bg-dark border-secondary">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-vcenter table-hover card-table mb-0 text-white" style="font-size:.88rem;">
+                    <thead>
+                        <tr style="border-bottom:2px solid #334155; background:#1e293b;">
+                            <th class="ps-3" style="color:#94a3b8; white-space:nowrap;">Ref #</th>
+                            <th style="color:#94a3b8;">Investor</th>
+                            <th style="color:#94a3b8;">Campaign</th>
+                            <th style="color:#94a3b8; text-align:right;">Amount</th>
+                            <th style="color:#94a3b8;">Payment</th>
+                            <th style="color:#94a3b8;">Harvest / Expiry</th>
+                            <th style="color:#94a3b8;">Status</th>
+                            <th style="color:#94a3b8; white-space:nowrap;">Date & Time</th>
+                            <th style="color:#94a3b8; text-align:center;">Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for txn in transactions %}
+                        <tr style="border-bottom:1px solid #1e293b;"
+                            class="{% if txn.status == 'completed' %}txn-completed{% elif txn.status == 'pending' %}txn-pending{% elif txn.status == 'failed' %}txn-failed{% endif %}">
+
+                            <!-- REF # -->
+                            <td class="ps-3">
+                                <code class="text-info" style="font-size:.8rem; letter-spacing:.03em;">{{ txn.reference_number|default:'—' }}</code>
+                            </td>
+
+                            <!-- INVESTOR -->
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="txn-avatar">
+                                        {{ txn.investment.investor.name|first|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="text-white fw-semibold txn-highlight-target" style="white-space:nowrap;">
+                                            {{ txn.investment.investor.name }}
+                                        </div>
+                                        {% if txn.investment.investor.contact %}
+                                        <div class="text-muted" style="font-size:.72rem;">
+                                            <i class="fas fa-phone me-1"></i>{{ txn.investment.investor.contact }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- CAMPAIGN -->
+                            <td style="max-width:180px;">
+                                <a href="{% url 'campaigns:project_detail' txn.investment.project.pk %}"
+                                   class="text-white fw-semibold text-decoration-none d-block text-truncate"
+                                   title="{{ txn.investment.project.title }}">
+                                    {{ txn.investment.project.title }}
+                                </a>
+                                <div class="text-muted" style="font-size:.7rem; white-space:nowrap;">
+                                    {% if txn.investment.project.farmer_name %}
+                                        <i class="fas fa-user-tie me-1"></i>{{ txn.investment.project.farmer_name }}
+                                    {% endif %}
+                                    {% if txn.investment.project.location %}
+                                        &nbsp;·&nbsp;<i class="fas fa-map-marker-alt me-1"></i>{{ txn.investment.project.location }}
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                            <!-- AMOUNT -->
+                            <td class="fw-bold text-white" style="text-align:right; white-space:nowrap;">
+                                ₱{{ txn.amount|floatformat:"2g" }}
+                            </td>
+
+                            <!-- PAYMENT -->
+                            <td style="white-space:nowrap;">
+                                {% if txn.payment_method == 'gcash' %}
+                                    <span class="badge px-2" style="background:#1e3a5f; color:#60a5fa;"><i class="fas fa-mobile-alt me-1"></i>GCash</span>
+                                {% elif txn.payment_method == 'bank_transfer' %}
+                                    <span class="badge bg-secondary px-2"><i class="fas fa-university me-1"></i>Bank</span>
+                                {% elif txn.payment_method == 'maya' %}
+                                    <span class="badge px-2" style="background:#0c3044; color:#22d3ee;"><i class="fas fa-wallet me-1"></i>Maya</span>
+                                {% elif txn.payment_method == 'check' %}
+                                    <span class="badge bg-warning text-dark px-2"><i class="fas fa-file-invoice me-1"></i>Check</span>
+                                {% else %}
+                                    <span class="badge px-2" style="background:#0d2818; color:#4ade80;"><i class="fas fa-money-bill-wave me-1"></i>Cash</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- HARVEST / EXPIRY -->
+                            <td style="white-space:nowrap;">
+                                {% if txn.investment.project.harvest_date %}
+                                    {% if txn.investment.project.harvest_expired %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Expired
+                                        </span>
+                                        <div class="text-muted" style="font-size:.7rem;">{{ txn.investment.project.harvest_date }}</div>
+                                    {% elif txn.investment.project.days_to_harvest <= 7 %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-leaf me-1"></i>{{ txn.investment.project.harvest_date|date:"M d, Y" }}
+                                        </span>
+                                        <div class="text-warning" style="font-size:.7rem;">{{ txn.investment.project.days_to_harvest }}d left</div>
+                                    {% else %}
+                                        <span class="text-success" style="font-size:.82rem;">
+                                            <i class="fas fa-leaf me-1"></i>{{ txn.investment.project.harvest_date|date:"M d, Y" }}
+                                        </span>
+                                        <div class="text-muted" style="font-size:.7rem;">{{ txn.investment.project.days_to_harvest }}d left</div>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- STATUS -->
+                            <td>
+                                {% if txn.status == 'completed' %}
+                                    <span class="badge bg-success px-2 py-1">
+                                        <i class="fas fa-check-circle me-1"></i>Completed
+                                    </span>
+                                {% elif txn.status == 'pending' %}
+                                    <span class="badge bg-warning text-dark px-2 py-1">
+                                        <i class="fas fa-clock me-1"></i>Pending
+                                    </span>
+                                {% elif txn.status == 'failed' %}
+                                    <span class="badge bg-danger px-2 py-1">
+                                        <i class="fas fa-times-circle me-1"></i>Failed
+                                    </span>
+                                {% elif txn.status == 'refunded' %}
+                                    <span class="badge bg-secondary px-2 py-1">
+                                        <i class="fas fa-undo me-1"></i>Refunded
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- DATE -->
+                            <td style="white-space:nowrap;">
+                                <div class="text-white" style="font-size:.82rem;">{{ txn.created_at|date:"M d, Y" }}</div>
+                                <div class="text-muted" style="font-size:.72rem;">{{ txn.created_at|date:"g:i A" }}</div>
+                            </td>
+
+                            <!-- RECEIPT -->
+                            <td style="text-align:center;">
+                                <a href="{% url 'investments:receipt' txn.pk %}"
+                                   class="btn btn-sm btn-outline-info"
+                                   title="View Receipt" target="_blank">
+                                    <i class="fas fa-receipt me-1"></i>
+                                    <span class="d-none d-lg-inline">Receipt</span>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div><!-- /tableView -->
+
+<!-- CARD VIEW (hidden by default) -->
+<div id="cardView" style="display:none;">
+    <div class="row g-3">
+        {% for txn in transactions %}
+        <div class="col-md-6 col-xl-4">
+            <div class="card h-100 bg-dark"
+                 style="border-left: 4px solid
+                    {% if txn.status == 'completed' %}#22c55e
+                    {% elif txn.status == 'pending' %}#f59e0b
+                    {% elif txn.status == 'failed' %}#ef4444
+                    {% else %}#64748b{% endif %};
+                    border-top:1px solid #334155; border-right:1px solid #334155; border-bottom:1px solid #334155;">
+                <div class="card-body p-3">
+
+                    <!-- TOP ROW: avatar + name + amount -->
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <div class="txn-avatar txn-avatar-lg">
+                            {{ txn.investment.investor.name|first|upper }}
+                        </div>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="text-white fw-bold text-truncate">{{ txn.investment.investor.name }}</div>
+                            {% if txn.investment.investor.contact %}
+                            <div class="text-muted" style="font-size:.75rem;">
+                                <i class="fas fa-phone me-1"></i>{{ txn.investment.investor.contact }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            <div class="text-success fw-bold">₱{{ txn.amount|floatformat:"2g" }}</div>
+                            {% if txn.status == 'completed' %}
+                                <span class="badge bg-success" style="font-size:.68rem;">Completed</span>
+                            {% elif txn.status == 'pending' %}
+                                <span class="badge bg-warning text-dark" style="font-size:.68rem;">Pending</span>
+                            {% elif txn.status == 'failed' %}
+                                <span class="badge bg-danger" style="font-size:.68rem;">Failed</span>
+                            {% else %}
+                                <span class="badge bg-secondary" style="font-size:.68rem;">{{ txn.get_status_display }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- CAMPAIGN -->
+                    <div class="mb-2 p-2 rounded" style="background:#0f172a;">
+                        <div class="text-muted" style="font-size:.7rem;">Campaign</div>
+                        <a href="{% url 'campaigns:project_detail' txn.investment.project.pk %}"
+                           class="text-white fw-semibold text-decoration-none" style="font-size:.85rem;">
+                            {{ txn.investment.project.title|truncatechars:40 }}
+                        </a>
+                        {% if txn.investment.project.farmer_name %}
+                        <div class="text-muted" style="font-size:.7rem;">
+                            <i class="fas fa-user-tie me-1"></i>{{ txn.investment.project.farmer_name }}
+                            {% if txn.investment.project.location %}· {{ txn.investment.project.location }}{% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- DETAILS ROW -->
+                    <div class="row g-1 mb-2" style="font-size:.78rem;">
+                        <div class="col-6">
+                            <span class="text-muted">Ref:</span>
+                            <code class="text-info ms-1">{{ txn.reference_number|default:'—' }}</code>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted">Payment:</span>
+                            <span class="text-white ms-1">{{ txn.payment_method|capfirst }}</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted">Date:</span>
+                            <span class="text-white ms-1">{{ txn.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted">Time:</span>
+                            <span class="text-white ms-1">{{ txn.created_at|date:"g:i A" }}</span>
+                        </div>
+                        {% if txn.investment.project.harvest_date %}
+                        <div class="col-12 mt-1">
+                            <span class="text-muted">Harvest/Expiry:</span>
+                            {% if txn.investment.project.harvest_expired %}
+                                <span class="badge bg-danger ms-1">Expired</span>
+                            {% else %}
+                                <span class="text-success ms-1">{{ txn.investment.project.harvest_date|date:"M d, Y" }}</span>
+                                <span class="text-muted">({{ txn.investment.project.days_to_harvest }}d left)</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- FOOTER: receipt button -->
+                    <div class="pt-2" style="border-top:1px solid #1e293b;">
+                        <a href="{% url 'investments:receipt' txn.pk %}" class="btn btn-sm btn-outline-info w-100">
+                            <i class="fas fa-receipt me-1"></i> View Receipt
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div><!-- /cardView -->
+
+{% else %}
+<!-- EMPTY STATE -->
+<div class="card bg-dark border-secondary">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-search fa-3x text-muted mb-3 d-block"></i>
+        <h4 class="text-white mb-2">No transactions found</h4>
+        {% if summary.is_filtered %}
+        <p class="text-muted mb-3">
+            No results match
+            {% if query %}<strong class="text-info">"{{ query }}"</strong>{% endif %}
+            {% if status_filter %}with status <strong>{{ status_filter }}</strong>{% endif %}
+            {% if payment_filter %}via <strong>{{ payment_filter }}</strong>{% endif %}.
+        </p>
+        <a href="{% url 'investments:transaction_history' %}" class="btn btn-outline-info">
+            <i class="fas fa-times me-1"></i> Clear filters &amp; show all
+        </a>
+        {% else %}
+        <p class="text-muted">No investment transactions have been recorded yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- ── PAGINATION ─────────────────────────────────────────────────────── -->
+{% if transactions.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center mb-0">
+        {% if transactions.has_previous %}
+        <li class="page-item">
+            <a class="page-link bg-dark border-secondary text-white"
+               href="?page={{ transactions.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if payment_filter %}&payment={{ payment_filter }}{% endif %}">
+                <i class="fas fa-chevron-left me-1"></i> Prev
+            </a>
+        </li>
+        {% endif %}
+
+        {% for num in transactions.paginator.page_range %}
+            {% if transactions.number == num %}
+            <li class="page-item active">
+                <span class="page-link bg-success border-success">{{ num }}</span>
+            </li>
+            {% elif num == 1 or num == transactions.paginator.num_pages or num|add:"-2" <= transactions.number and transactions.number <= num|add:"2" %}
+            <li class="page-item">
+                <a class="page-link bg-dark border-secondary text-white"
+                   href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if payment_filter %}&payment={{ payment_filter }}{% endif %}">{{ num }}</a>
+            </li>
+            {% elif num == 2 or num == transactions.paginator.num_pages|add:"-1" %}
+            <li class="page-item disabled"><span class="page-link bg-dark border-secondary text-muted">…</span></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if transactions.has_next %}
+        <li class="page-item">
+            <a class="page-link bg-dark border-secondary text-white"
+               href="?page={{ transactions.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if payment_filter %}&payment={{ payment_filter }}{% endif %}">
+                Next <i class="fas fa-chevron-right ms-1"></i>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<!-- ── STYLES ─────────────────────────────────────────────────────────── -->
+<style>
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.txn-avatar {
+    width: 36px; height: 36px; min-width: 36px;
+    border-radius: 50%;
+    background: #334155;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem; font-weight: 700; color: #fff;
+}
+.txn-avatar-lg {
+    width: 42px; height: 42px; min-width: 42px;
+    font-size: 1rem;
+}
+
+/* Subtle row tints */
+.txn-completed:hover { background: #0d2818 !important; }
+.txn-pending:hover   { background: #2d1c00 !important; }
+.txn-failed:hover    { background: #2d0a0a !important; }
+
+/* Highlight matched text */
+mark.txn-highlight {
+    background: #fbbf24; color: #0f172a;
+    border-radius: 3px; padding: 0 2px;
+}
+
+/* Active tab look */
+#btnTable.active, #btnCards.active {
+    background: #22c55e !important;
+    border-color: #22c55e !important;
+    color: #fff !important;
+}
+</style>
+
+<!-- ── SCRIPTS ────────────────────────────────────────────────────────── -->
+<script>
+// View toggle: table vs cards
+function setView(v) {
+    const tbl = document.getElementById('tableView');
+    const crd = document.getElementById('cardView');
+    const btnT = document.getElementById('btnTable');
+    const btnC = document.getElementById('btnCards');
+    if (v === 'table') {
+        tbl.style.display = ''; crd.style.display = 'none';
+        btnT.classList.add('active'); btnC.classList.remove('active');
+        localStorage.setItem('txnView', 'table');
+    } else {
+        tbl.style.display = 'none'; crd.style.display = '';
+        btnT.classList.remove('active'); btnC.classList.add('active');
+        localStorage.setItem('txnView', 'cards');
+    }
+}
+// Restore last chosen view
+(function(){ const v = localStorage.getItem('txnView'); if (v === 'cards') setView('cards'); })();
+
+// Clear individual field helper
+function clearField(inputId, paramName) {
+    const el = document.getElementById(inputId);
+    if (el) el.value = '';
+    document.getElementById('filterForm').submit();
+}
+
+// Auto-refresh every 30s — preserve search params
+(function(){
+    const url = new URL(window.location.href);
+    setTimeout(function(){
+        // Only refresh if no active text in search box (don't interrupt typing)
+        const q = document.getElementById('searchInput');
+        if (!q || q.value === '') {
+            window.location.href = url.toString();
+        }
+    }, 30000);
+})();
+
+// Client-side highlight of matched text in investor/campaign cells
+(function(){
+    const q = "{{ query|escapejs }}";
+    if (!q) return;
+    const rx = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+    document.querySelectorAll('.txn-highlight-target').forEach(el => {
+        el.innerHTML = el.textContent.replace(rx, '<mark class="txn-highlight">$1</mark>');
+    });
+})();
+</script>
+
+{% endblock %}
