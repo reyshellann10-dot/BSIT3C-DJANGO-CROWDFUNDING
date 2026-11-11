@@ -11,6 +11,12 @@ class Investment(models.Model):
         ('paypal',        'PayPal'),
     ]
 
+    STATUS_CHOICES = [
+        ('confirmed',           'Confirmed'),
+        ('pending_verification','Pending Verification'),
+        ('rejected',            'Rejected'),
+    ]
+
     investor = models.ForeignKey(
         'investors.Investor', related_name='investments', on_delete=models.CASCADE
     )
@@ -23,6 +29,17 @@ class Investment(models.Model):
     shares = models.PositiveIntegerField(default=1)
     payment_method = models.CharField(
         max_length=20, choices=PAYMENT_CHOICES, default='gcash'
+    )
+    status = models.CharField(
+        max_length=30, choices=STATUS_CHOICES, default='confirmed'
+    )
+    reference_number = models.CharField(
+        max_length=100, blank=True, default='',
+        help_text='Bank transfer reference number or sender name supplied by the user.'
+    )
+    sender_name = models.CharField(
+        max_length=100, blank=True, default='',
+        help_text='Sender / account name provided during bank transfer.'
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

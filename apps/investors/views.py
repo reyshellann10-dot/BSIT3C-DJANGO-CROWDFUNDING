@@ -12,7 +12,7 @@ from apps.investments.models import Investment
 @login_required(login_url='login')
 def dashboard(request):
     query = request.GET.get('q', '').strip()
-    qs = Investor.objects.all().order_by('name')
+    qs = Investor.objects.all().order_by('-created_at')
     if query:
         qs = qs.filter(Q(name__icontains=query) | Q(contact__icontains=query))
     

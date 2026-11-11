@@ -11,6 +11,11 @@ urlpatterns = [
     # Public landing page
     path('', core_views.home, name='home'),
 
+    # Public info pages
+    path('how-it-works/', core_views.how_it_works, name='how_it_works'),
+    path('features/', core_views.features, name='features'),
+    path('roles/',    core_views.roles,    name='roles'),
+
     # Auth
     path('login/',       core_views.login_view,       name='login'),
     path('logout/',      core_views.logout_view,      name='logout'),

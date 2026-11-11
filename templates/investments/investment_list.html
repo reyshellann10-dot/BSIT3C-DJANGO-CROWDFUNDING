@@ -52,6 +52,11 @@
                         
                         <!-- ACTIONS -->
                         <td class="text-end">
+                            <a href="{% url 'investments:transaction_receipt' inv.pk %}"
+                               target="_blank"
+                               class="text-info me-2" title="View Receipt">
+                                <i class="fas fa-receipt"></i>
+                            </a>
                             <a href="{% url 'investments:investment_update' inv.pk %}" class="text-warning me-2" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>

@@ -22,7 +22,7 @@ class Investor(models.Model):
 
     class Meta:
         db_table = 'tblinvestors'
-        ordering = ['name']
+        ordering = ['-created_at']
 
     def __str__(self):
         return self.name

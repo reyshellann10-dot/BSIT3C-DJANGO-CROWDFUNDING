@@ -214,6 +214,7 @@
             <th>Progress</th>
             <th>Status</th>
             <th>Date</th>
+            <th>Receipt</th>
           </tr>
         </thead>
         <tbody>
@@ -267,11 +268,20 @@
               </td>
               <!-- Date -->
               <td>{{ inv.created_at|date:"M j, Y" }}</td>
+              <!-- Receipt -->
+              <td>
+                <a href="{% url 'investments:transaction_receipt' inv.pk %}"
+                   target="_blank"
+                   title="View Receipt"
+                   style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:7px;font-size:.74rem;font-weight:600;color:#f59e0b;text-decoration:none;white-space:nowrap;transition:all .12s;">
+                  <i class="fas fa-receipt"></i> Receipt
+                </a>
+              </td>
             </tr>
             {% endfor %}
           {% else %}
             <tr>
-              <td colspan="10" class="pf-empty">
+              <td colspan="11" class="pf-empty">
                 <i class="fas fa-coins"></i>
                 <p>
                   {% if not investor %}

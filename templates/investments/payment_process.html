@@ -1,0 +1,523 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Payment Gateway — CrowdFarmV3</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #060e09;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 2rem 1rem 3rem;
+      color: #d1fae5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Top brand bar ── */
+    .pg-topbar {
+      width: 100%; max-width: 540px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.75rem;
+    }
+    .pg-brand { display: flex; align-items: center; gap: 9px; text-decoration: none; }
+    .pg-brand-icon {
+      width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+      background: linear-gradient(135deg,#22c55e,#16a34a);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 13px;
+    }
+    .pg-brand-name { font-size: .95rem; font-weight: 800; color: #fff; }
+    .pg-brand-name span { color: #f59e0b; }
+    .pg-secure {
+      display: flex; align-items: center; gap: 5px;
+      font-size: .72rem; color: #1a4728; font-weight: 600;
+    }
+    .pg-secure i { color: #22c55e; }
+
+    /* ── Steps indicator ── */
+    .pg-steps {
+      width: 100%; max-width: 540px;
+      display: flex; align-items: center; margin-bottom: 2rem;
+    }
+    .pg-step {
+      display: flex; align-items: center; gap: 7px;
+      font-size: .75rem; font-weight: 600;
+    }
+    .pg-step-num {
+      width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .7rem; font-weight: 800; flex-shrink: 0;
+    }
+    .pg-step.done .pg-step-num  { background: #22c55e; color: #fff; }
+    .pg-step.done .pg-step-lbl  { color: #22c55e; }
+    .pg-step.active .pg-step-num{ background: #f59e0b; color: #0a0800; }
+    .pg-step.active .pg-step-lbl{ color: #fbbf24; font-weight: 700; }
+    .pg-step.todo .pg-step-num  { background: #1a3d25; color: #4d7a5a; }
+    .pg-step.todo .pg-step-lbl  { color: #1a4728; }
+    .pg-step-line { flex: 1; height: 2px; background: #1a3d25; margin: 0 8px; }
+
+    /* ── Main card ── */
+    .pg-card {
+      width: 100%; max-width: 540px;
+      background: #0a1a10; border: 1px solid #1a3d25;
+      border-radius: 18px; overflow: hidden;
+    }
+
+    /* Card header */
+    .pg-card-header {
+      background: linear-gradient(145deg,#071a10,#0a2518);
+      padding: 1.4rem 1.75rem; border-bottom: 1px solid #1a3d25;
+    }
+    .pg-method-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.2);
+      color: #22c55e; border-radius: 99px; padding: 4px 14px;
+      font-size: .7rem; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; margin-bottom: 10px;
+    }
+    .pg-card-title { font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 3px; }
+    .pg-card-sub   { font-size: .82rem; color: #1a4728; }
+
+    /* Order summary */
+    .pg-summary {
+      padding: 1.25rem 1.75rem; border-bottom: 1px solid #1a3d25;
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+    }
+    @media(max-width:420px){ .pg-summary { grid-template-columns: 1fr; } }
+    .pg-sum-item { }
+    .pg-sum-lbl { font-size: .65rem; color: #1a4728; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; }
+    .pg-sum-val { font-size: .95rem; font-weight: 700; color: #e2e8f0; }
+    .pg-sum-val.amount  { color: #fbbf24; font-size: 1.1rem; font-weight: 800; }
+    .pg-sum-val.profit  { color: #4ade80; }
+    .pg-sum-val.returns { color: #38bdf8; }
+
+    /* Payment body */
+    .pg-body { padding: 1.5rem 1.75rem; }
+    .pg-section-title {
+      font-size: .68rem; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: #1a4728;
+      display: flex; align-items: center; gap: 8px;
+      padding-bottom: 10px; border-bottom: 1px solid #0f2918;
+      margin-bottom: 16px;
+    }
+    .pg-section-title i { color: #22c55e; }
+
+    /* GCash / PayMaya form */
+    .pg-label {
+      display: block; font-size: .72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .05em;
+      color: #4d7a5a; margin-bottom: 7px;
+    }
+    .pg-input {
+      width: 100%; padding: 12px 14px;
+      background: #071a10; border: 1.5px solid #1a3d25;
+      border-radius: 10px; color: #e2e8f0; font-size: .95rem;
+      outline: none; font-family: inherit; transition: border-color .15s;
+      margin-bottom: 16px;
+    }
+    .pg-input:focus { border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.1); }
+    .pg-input::placeholder { color: #1a3d25; }
+
+    /* GCash logo area */
+    .pg-method-logo {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(34,197,94,.05); border: 1px solid #1a3d25;
+      border-radius: 11px; padding: 14px 16px; margin-bottom: 20px;
+    }
+    .pg-method-logo-icon {
+      width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+    }
+    .pg-method-logo-icon.gcash    { background: #0070e0; color: #fff; }
+    .pg-method-logo-icon.paymaya  { background: #00a651; color: #fff; }
+    .pg-method-logo-icon.bank     { background: #1e3a5f; color: #60a5fa; }
+    .pg-method-logo-icon.paypal   { background: #003087; color: #fff; }
+    .pg-method-logo-name { font-weight: 700; color: #fff; font-size: .9rem; }
+    .pg-method-logo-sub  { font-size: .74rem; color: #1a4728; }
+
+    /* Bank details box */
+    .pg-bank-details {
+      background: #071a10; border: 1px solid #1a3d25; border-radius: 11px;
+      padding: 1.1rem 1.25rem; margin-bottom: 16px;
+    }
+    .pg-bank-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 7px 0; border-bottom: 1px dashed #1a3d25; font-size: .84rem;
+    }
+    .pg-bank-row:last-child { border-bottom: none; }
+    .pg-bank-lbl { color: #1a4728; }
+    .pg-bank-val { color: #e2e8f0; font-weight: 600; }
+    .pg-bank-val.highlight { color: #fbbf24; font-size: .95rem; font-weight: 800; }
+
+    .pg-notice {
+      background: rgba(245,158,11,.06); border: 1px solid rgba(245,158,11,.18);
+      border-radius: 9px; padding: 10px 14px; font-size: .78rem;
+      color: #fbbf24; display: flex; align-items: flex-start; gap: 8px;
+      margin-bottom: 16px; line-height: 1.5;
+    }
+    .pg-notice i { margin-top: 2px; flex-shrink: 0; }
+
+    /* PayPal */
+    .pg-paypal-box {
+      background: rgba(0,48,135,.15); border: 1px solid rgba(0,48,135,.4);
+      border-radius: 11px; padding: 1.5rem; text-align: center;
+      margin-bottom: 16px;
+    }
+    .pg-paypal-box i { font-size: 2.5rem; color: #60a5fa; margin-bottom: 10px; display: block; }
+    .pg-paypal-box p { font-size: .84rem; color: #94a3b8; }
+
+    /* Action buttons */
+    .pg-btn-primary {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg,#22c55e,#16a34a);
+      border: none; border-radius: 11px; color: #fff;
+      font-size: .95rem; font-weight: 800; cursor: pointer;
+      font-family: inherit; transition: opacity .15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 6px 18px rgba(34,197,94,.3);
+    }
+    .pg-btn-primary:hover { opacity: .9; }
+    .pg-btn-secondary {
+      width: 100%; padding: 11px;
+      background: transparent; border: 1.5px solid #1a3d25;
+      border-radius: 11px; color: #4d7a5a;
+      font-size: .88rem; font-weight: 600; cursor: pointer;
+      font-family: inherit; margin-top: 10px; transition: all .15s;
+    }
+    .pg-btn-secondary:hover { border-color: rgba(239,68,68,.4); color: #f87171; }
+
+    .pg-card-footer {
+      padding: .9rem 1.75rem; border-top: 1px solid #0f2918;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-size: .72rem; color: #1a4728;
+    }
+    .pg-card-footer i { color: #22c55e; }
+  </style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="pg-topbar">
+  <a class="pg-brand" href="/campaigns/projects/">
+    <div class="pg-brand-icon"><i class="fas fa-leaf"></i></div>
+    <span class="pg-brand-name">CrowdFarm<span>V3</span></span>
+  </a>
+  <span class="pg-secure"><i class="fas fa-lock"></i> Secure Checkout</span>
+</div>
+
+<!-- Steps -->
+<div class="pg-steps">
+  <div class="pg-step done">
+    <div class="pg-step-num"><i class="fas fa-check" style="font-size:.6rem;"></i></div>
+    <span class="pg-step-lbl">Details</span>
+  </div>
+  <div class="pg-step-line"></div>
+  <div class="pg-step active">
+    <div class="pg-step-num">2</div>
+    <span class="pg-step-lbl">Payment</span>
+  </div>
+  <div class="pg-step-line"></div>
+  <div class="pg-step todo">
+    <div class="pg-step-num">3</div>
+    <span class="pg-step-lbl">Receipt</span>
+  </div>
+</div>
+
+<!-- Card -->
+<div class="pg-card">
+
+  <!-- Header -->
+  <div class="pg-card-header">
+    <div class="pg-method-badge">
+      {% if payment_method == 'gcash' %}<i class="fas fa-mobile-alt"></i> GCash
+      {% elif payment_method == 'paymaya' %}<i class="fas fa-wallet"></i> PayMaya
+      {% elif payment_method == 'bank_transfer' %}<i class="fas fa-university"></i> Bank Transfer
+      {% elif payment_method == 'paypal' %}<i class="fab fa-paypal"></i> PayPal
+      {% endif %}
+    </div>
+    <div class="pg-card-title">Complete Your Investment</div>
+    <div class="pg-card-sub">{{ project.title }}</div>
+  </div>
+
+  <!-- Order Summary -->
+  <div class="pg-summary">
+    <div class="pg-sum-item">
+      <div class="pg-sum-lbl">Amount</div>
+      <div class="pg-sum-val amount">₱{{ amount|floatformat:"2g" }}</div>
+    </div>
+    <div class="pg-sum-item">
+      <div class="pg-sum-lbl">Est. Profit</div>
+      <div class="pg-sum-val profit">₱{{ profit|floatformat:"2g" }}</div>
+    </div>
+    <div class="pg-sum-item">
+      <div class="pg-sum-lbl">Total Return</div>
+      <div class="pg-sum-val returns">₱{{ total_return|floatformat:"2g" }}</div>
+    </div>
+  </div>
+
+  <!-- Payment body -->
+  <div class="pg-body">
+
+    <form method="POST" action="">
+      {% csrf_token %}
+
+      <!-- ═══ GCash ═══ -->
+      {% if payment_method == 'gcash' %}
+      <div class="pg-method-logo">
+        <div class="pg-method-logo-icon gcash"><i class="fas fa-mobile-alt"></i></div>
+        <div>
+          <div class="pg-method-logo-name">GCash</div>
+          <div class="pg-method-logo-sub">Pay via GCash mobile wallet</div>
+        </div>
+      </div>
+      <div class="pg-section-title"><i class="fas fa-mobile-alt"></i> Enter GCash Number</div>
+      <label class="pg-label" for="mobile_number">GCash Mobile Number</label>
+      <input type="tel" id="mobile_number" name="mobile_number" class="pg-input"
+             placeholder="e.g. 09171234567" pattern="09[0-9]{9}" maxlength="11"
+             required autocomplete="tel">
+      <div class="pg-notice">
+        <i class="fas fa-info-circle"></i>
+        <span>Enter the GCash number registered to your account. You will receive a payment confirmation shortly after clicking Pay Now.</span>
+      </div>
+      <button type="submit" class="pg-btn-primary">
+        <i class="fas fa-paper-plane"></i> Pay ₱{{ amount|floatformat:"2g" }} via GCash
+      </button>
+
+      <!-- ═══ PayMaya ═══ -->
+      {% elif payment_method == 'paymaya' %}
+      <div class="pg-method-logo">
+        <div class="pg-method-logo-icon paymaya"><i class="fas fa-wallet"></i></div>
+        <div>
+          <div class="pg-method-logo-name">PayMaya</div>
+          <div class="pg-method-logo-sub">Pay via Maya e-wallet</div>
+        </div>
+      </div>
+      <div class="pg-section-title"><i class="fas fa-wallet"></i> Enter Maya Number</div>
+      <label class="pg-label" for="mobile_number">Maya Mobile Number</label>
+      <input type="tel" id="mobile_number" name="mobile_number" class="pg-input"
+             placeholder="e.g. 09171234567" pattern="09[0-9]{9}" maxlength="11"
+             required autocomplete="tel">
+      <div class="pg-notice">
+        <i class="fas fa-info-circle"></i>
+        <span>Enter the Maya number linked to your wallet. A payment request will be sent to your Maya app.</span>
+      </div>
+      <button type="submit" class="pg-btn-primary">
+        <i class="fas fa-paper-plane"></i> Pay ₱{{ amount|floatformat:"2g" }} via Maya
+      </button>
+
+      <!-- ═══ Bank Transfer ═══ -->
+      {% elif payment_method == 'bank_transfer' %}
+      <div class="pg-method-logo">
+        <div class="pg-method-logo-icon bank"><i class="fas fa-university"></i></div>
+        <div>
+          <div class="pg-method-logo-name">Bank Transfer</div>
+          <div class="pg-method-logo-sub">Transfer to our account below</div>
+        </div>
+      </div>
+
+      <div class="pg-section-title"><i class="fas fa-university"></i> Bank Account Details</div>
+      <div class="pg-bank-details">
+        <div class="pg-bank-row">
+          <span class="pg-bank-lbl">Bank Name</span>
+          <span class="pg-bank-val">BDO Unibank</span>
+        </div>
+        <div class="pg-bank-row">
+          <span class="pg-bank-lbl">Account Name</span>
+          <span class="pg-bank-val">CrowdFarmV3 Inc.</span>
+        </div>
+        <div class="pg-bank-row">
+          <span class="pg-bank-lbl">Account Number</span>
+          <span class="pg-bank-val highlight">0012-3456-7890</span>
+        </div>
+        <div class="pg-bank-row">
+          <span class="pg-bank-lbl">Amount to Transfer</span>
+          <span class="pg-bank-val highlight">₱{{ amount|floatformat:"2g" }}</span>
+        </div>
+        <div class="pg-bank-row">
+          <span class="pg-bank-lbl">Use this Reference / Memo</span>
+          <span class="pg-bank-val" style="color:#4ade80;font-family:monospace;">
+            INV-{{ project.pk }}-{{ request.user.id }}
+          </span>
+        </div>
+      </div>
+
+      <div class="pg-notice">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>
+          Transfer the exact amount to the account above, then fill in your
+          transfer details below so our team can verify your payment.
+        </span>
+      </div>
+
+      <!-- ── Validation error box (shown by JS or server) ── -->
+      <div id="bankErrors" style="{% if bank_errors %}display:block{% else %}display:none{% endif %};
+           background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:9px;
+           padding:10px 14px;font-size:.8rem;color:#fca5a5;
+           margin-bottom:14px;line-height:1.6;">
+        {% if bank_errors %}
+        <strong>Please fix the following:</strong><br>
+        {% for err in bank_errors %}• {{ err }}<br>{% endfor %}
+        {% endif %}
+      </div>
+
+      <div class="pg-section-title" style="margin-top:4px;">
+        <i class="fas fa-id-card"></i> Your Transfer Confirmation
+      </div>
+
+      <!-- Select Bank dropdown -->
+      <label class="pg-label" for="sender_bank">
+        Your Bank <span style="color:#f43f5e;">*</span>
+      </label>
+      <select id="sender_bank" name="sender_bank"
+              style="width:100%;padding:12px 14px;background:#071a10;
+                     border:1.5px solid {% if bank_errors and not prev_sender_bank %}#ef4444{% else %}#1a3d25{% endif %};
+                     border-radius:10px;color:#e2e8f0;font-size:.92rem;outline:none;
+                     font-family:inherit;cursor:pointer;margin-bottom:16px;
+                     transition:border-color .15s;appearance:none;">
+        <option value="" disabled {% if not prev_sender_bank %}selected{% endif %} style="color:#1a3d25;">— Select your bank —</option>
+        <option value="BDO"          {% if prev_sender_bank == "BDO" %}selected{% endif %}>BDO Unibank</option>
+        <option value="BPI"          {% if prev_sender_bank == "BPI" %}selected{% endif %}>BPI (Bank of the Philippine Islands)</option>
+        <option value="Metrobank"    {% if prev_sender_bank == "Metrobank" %}selected{% endif %}>Metrobank</option>
+        <option value="Landbank"     {% if prev_sender_bank == "Landbank" %}selected{% endif %}>Land Bank of the Philippines</option>
+        <option value="DBP"          {% if prev_sender_bank == "DBP" %}selected{% endif %}>Development Bank of the Philippines (DBP)</option>
+        <option value="PNB"          {% if prev_sender_bank == "PNB" %}selected{% endif %}>Philippine National Bank (PNB)</option>
+        <option value="Unionbank"    {% if prev_sender_bank == "Unionbank" %}selected{% endif %}>UnionBank</option>
+        <option value="RCBC"         {% if prev_sender_bank == "RCBC" %}selected{% endif %}>RCBC</option>
+        <option value="Eastwest"     {% if prev_sender_bank == "Eastwest" %}selected{% endif %}>EastWest Bank</option>
+        <option value="Chinabank"    {% if prev_sender_bank == "Chinabank" %}selected{% endif %}>China Bank</option>
+        <option value="Security Bank"{% if prev_sender_bank == "Security Bank" %}selected{% endif %}>Security Bank</option>
+        <option value="GCash"        {% if prev_sender_bank == "GCash" %}selected{% endif %}>GCash (Fund Transfer)</option>
+        <option value="Maya"         {% if prev_sender_bank == "Maya" %}selected{% endif %}>Maya / PayMaya (Fund Transfer)</option>
+        <option value="Other"        {% if prev_sender_bank == "Other" %}selected{% endif %}>Other</option>
+      </select>
+
+      <!-- Sender Name -->
+      <label class="pg-label" for="sender_name">
+        Sender / Account Name <span style="color:#f43f5e;">*</span>
+      </label>
+      <input type="text" id="sender_name" name="sender_name" class="pg-input"
+             placeholder="e.g. Juan Dela Cruz" maxlength="100" autocomplete="name"
+             value="{{ prev_sender_name }}"
+             style="border-color:{% if bank_errors and not prev_sender_name %}#ef4444{% else %}#1a3d25{% endif %};">
+
+      <!-- Reference Number -->
+      <label class="pg-label" for="reference_number">
+        Bank Reference / Transaction Number <span style="color:#f43f5e;">*</span>
+      </label>
+      <input type="text" id="reference_number" name="reference_number" class="pg-input"
+             placeholder="e.g. 20261110-123456" maxlength="100"
+             value="{{ prev_reference }}"
+             style="border-color:{% if bank_errors and not prev_reference %}#ef4444{% else %}#1a3d25{% endif %};">
+
+      <div class="pg-notice" style="background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.18);color:#86efac;">
+        <i class="fas fa-info-circle" style="color:#22c55e;"></i>
+        <span>
+          After clicking the button below, your investment will be marked as
+          <strong>Pending Verification</strong>. An admin will review your transfer
+          details and confirm it within 1–2 business days.
+        </span>
+      </div>
+
+      <button type="submit" id="bankSubmitBtn" class="pg-btn-primary"
+              onclick="return validateBankForm()">
+        <i class="fas fa-check-circle"></i> I Have Transferred the Amount
+      </button>
+
+      <script>
+      // Add focus style to the select
+      document.getElementById('sender_bank').addEventListener('focus', function(){
+        this.style.borderColor = '#22c55e';
+        this.style.boxShadow   = '0 0 0 3px rgba(34,197,94,.1)';
+      });
+      document.getElementById('sender_bank').addEventListener('blur', function(){
+        this.style.borderColor = '#1a3d25';
+        this.style.boxShadow   = 'none';
+      });
+
+      const VALID_BANKS = [
+        'BDO','BPI','Metrobank','Landbank','DBP','PNB',
+        'Unionbank','RCBC','Eastwest','Chinabank','Security Bank',
+        'GCash','Maya','Other'
+      ];
+
+      function validateBankForm() {
+        const bank    = document.getElementById('sender_bank').value.trim();
+        const sender  = document.getElementById('sender_name').value.trim();
+        const ref     = document.getElementById('reference_number').value.trim();
+        const errBox  = document.getElementById('bankErrors');
+        const errors  = [];
+
+        if (!bank || !VALID_BANKS.includes(bank)) {
+          errors.push('• Please select your bank from the dropdown.');
+          document.getElementById('sender_bank').style.borderColor = '#ef4444';
+        } else {
+          document.getElementById('sender_bank').style.borderColor = '#1a3d25';
+        }
+
+        if (!sender) {
+          errors.push('• Sender / Account Name is required.');
+          document.getElementById('sender_name').style.borderColor = '#ef4444';
+        } else {
+          document.getElementById('sender_name').style.borderColor = '#1a3d25';
+        }
+
+        if (!ref) {
+          errors.push('• Bank Reference / Transaction Number is required.');
+          document.getElementById('reference_number').style.borderColor = '#ef4444';
+        } else {
+          document.getElementById('reference_number').style.borderColor = '#1a3d25';
+        }
+
+        if (errors.length > 0) {
+          errBox.innerHTML = '<strong>Please fix the following:</strong><br>' + errors.join('<br>');
+          errBox.style.display = 'block';
+          errBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          return false;   // stop form submission
+        }
+
+        errBox.style.display = 'none';
+        return true;      // allow submit
+      }
+      </script>
+
+      <!-- ═══ PayPal ═══ -->
+      {% elif payment_method == 'paypal' %}
+      <div class="pg-paypal-box">
+        <i class="fab fa-paypal"></i>
+        <p>You will be redirected to PayPal to complete your payment of <strong style="color:#fbbf24;">₱{{ amount|floatformat:"2g" }}</strong> securely.</p>
+      </div>
+      <div class="pg-notice">
+        <i class="fas fa-info-circle"></i>
+        <span>Log in to your PayPal account to authorize the payment. You will return here automatically after completion.</span>
+      </div>
+      <button type="submit" class="pg-btn-primary">
+        <i class="fab fa-paypal"></i> Proceed to PayPal
+      </button>
+      {% endif %}
+
+      <button type="button" class="pg-btn-secondary"
+              onclick="window.location.href='/campaigns/projects/'">
+        <i class="fas fa-times me-1"></i> Cancel
+      </button>
+
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <div class="pg-card-footer">
+    <i class="fas fa-shield-alt"></i> 256-bit SSL encryption &nbsp;&middot;&nbsp;
+    <i class="fas fa-lock"></i> Your data is safe
+  </div>
+
+</div><!-- /pg-card -->
+
+</body>
+</html>

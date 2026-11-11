@@ -212,6 +212,9 @@ def register_view(request):
                 Investor.objects.create(
                     user=user,
                     name=f"{first_name} {last_name}".strip() or user.username,
+                    # Keep the insert independent of the DB's NULL handling.
+                    contact='',
+                    address='',
                 )
             except Exception:
                 # If profile creation fails for any reason, the user account
@@ -249,8 +252,27 @@ def home(request):
     total_investors = Investor.objects.count()
     total_raised    = Investment.objects.aggregate(t=_Sum('amount'))['t'] or 0
 
+    # Live campaigns listed on the landing page (newest first).
+    projects = Project.objects.filter(status='ongoing').order_by('-created_at')
+
     return render(request, 'home.html', {
         'total_projects':  total_projects,
         'total_investors': total_investors,
         'total_raised':    total_raised,
+        'projects':        projects,
     })
+
+
+def how_it_works(request):
+    """How It Works page — public, including for logged-in users."""
+    return render(request, 'how_it_works.html')
+
+
+def features(request):
+    """Platform Features page — public, including for logged-in users."""
+    return render(request, 'features.html')
+
+
+def roles(request):
+    """Three Roles page — public, including for logged-in users."""
+    return render(request, 'roles.html')

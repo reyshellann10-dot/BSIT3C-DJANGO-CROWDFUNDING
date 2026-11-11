@@ -223,6 +223,11 @@
 .bc-flash-success { background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#86efac; }
 .bc-flash-error   { background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#fca5a5; }
 
+@keyframes slideDown {
+  from { opacity:0; transform:translateX(-50%) translateY(-12px); }
+  to   { opacity:1; transform:translateX(-50%) translateY(0); }
+}
+
 /* ── INVEST NOW MODAL ── */
 .inv-backdrop {
   display:none;position:fixed;inset:0;z-index:1050;
@@ -383,7 +388,7 @@
         </div>
         <div class="bc-prog">
           <div class="bc-prog-bar">
-            <div class="bc-prog-fill" style="width:{{ project.progress_percentage }}%;"></div>
+            <div class="bc-prog-fill" style="width:{{ project.progress_percentage }}%;{% if project.progress_percentage >= 100 %}background:linear-gradient(90deg,#f59e0b,#d97706);{% endif %}"></div>
           </div>
           <div class="bc-prog-meta">
             <span class="raised">₱{{ project.total_raised|floatformat:"2g" }} raised</span>
@@ -394,9 +399,16 @@
           <span class="bc-return-badge">
             <i class="fas fa-chart-line me-1"></i>{{ project.profit_rate }}% return
           </span>
-          {% if user.is_authenticated %}
+          {% if project.progress_percentage >= 100 %}
+            {# Fully funded — no investing allowed #}
+            <span style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+                         background:rgba(245,158,11,.12);border:1.5px solid rgba(245,158,11,.35);
+                         border-radius:8px;font-size:.78rem;font-weight:700;color:#f59e0b;">
+              <i class="fas fa-check-circle"></i> Fully Funded
+            </span>
+          {% elif user.is_authenticated %}
             <button type="button" class="bc-invest-btn"
-                    onclick="openModal({{ project.pk }},'{{ project.title|escapejs }}',{{ project.profit_rate }},'{{ project.crop_type|default:"Agriculture"|escapejs }}')">
+                    onclick="openModal({{ project.pk }},'{{ project.title|escapejs }}',{{ project.profit_rate }},'{{ project.crop_type|default:"Agriculture"|escapejs }}',{{ project.progress_percentage }})">
               <i class="fas fa-coins"></i> Invest Now
             </button>
           {% else %}
@@ -451,6 +463,9 @@
     <form method="POST" id="invForm" action="">
       {% csrf_token %}
       <div class="inv-modal-body">
+        <div id="mCapWarning" style="display:none;background:rgba(245,158,11,.1);
+             border:1px solid rgba(245,158,11,.3);border-radius:8px;
+             padding:9px 13px;font-size:.8rem;color:#fbbf24;margin-bottom:14px;"></div>
         <div class="inv-field">
           <label class="inv-label"><i class="fas fa-peso-sign"></i> Investment Amount (₱)</label>
           <input type="number" name="amount" id="mAmount" class="inv-input"
@@ -509,16 +524,30 @@
 
 <script>
 let mRate = 10;
+let mPk   = null;
 
-function openModal(pk, title, rate, tag) {
+// ── Open modal ──────────────────────────────────────────────────
+function openModal(pk, title, rate, tag, progress) {
   mRate = parseFloat(rate) || 10;
+  mPk   = pk;
   document.getElementById('mTitle').textContent = title;
   document.getElementById('mTag').textContent   = tag;
   document.getElementById('mRate').textContent  = rate;
-  document.getElementById('invForm').action     = '/investments/invest/' + pk + '/';
+  document.getElementById('invForm').dataset.pk = pk;
   document.getElementById('mAmount').value      = '';
   document.getElementById('mShares').value      = '1';
+  // Show "almost full" warning if > 80% funded
+  const warn = document.getElementById('mCapWarning');
+  if (warn) {
+    if (progress >= 80 && progress < 100) {
+      warn.textContent = `⚠️ This campaign is ${progress}% funded — invest soon!`;
+      warn.style.display = 'block';
+    } else {
+      warn.style.display = 'none';
+    }
+  }
   updatePrev();
+  // Reset payment pills to GCash
   document.querySelectorAll('.pay-pill').forEach(p => p.classList.remove('selected'));
   document.querySelectorAll('.pay-pill')[0].classList.add('selected');
   document.querySelectorAll('.pay-pill input')[0].checked = true;
@@ -527,34 +556,162 @@ function openModal(pk, title, rate, tag) {
   setTimeout(() => document.getElementById('mAmount').focus(), 100);
 }
 
+// ── Close modal ─────────────────────────────────────────────────
 function closeModal() {
   document.getElementById('invBackdrop').classList.remove('open');
   document.body.style.overflow = '';
 }
-
 function closeOnBack(e) {
   if (e.target === document.getElementById('invBackdrop')) closeModal();
 }
 
+// ── Payment pill selection ───────────────────────────────────────
 function selPay(lbl) {
+  event.preventDefault();   // stop double-fire
   document.querySelectorAll('.pay-pill').forEach(p => p.classList.remove('selected'));
   lbl.classList.add('selected');
   lbl.querySelector('input').checked = true;
 }
 
+// ── Live profit preview ──────────────────────────────────────────
 function updatePrev() {
   const a = parseFloat(document.getElementById('mAmount').value) || 0;
   const p = (a * mRate) / 100;
   const r = a + p;
-  const f = v => '₱' + v.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const f = v => '₱' + v.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2});
   document.getElementById('pAmt').textContent    = f(a);
   document.getElementById('pProfit').textContent = f(p);
   document.getElementById('pReturn').textContent = f(r);
 }
 
+// ── AJAX form submission ─────────────────────────────────────────
+document.getElementById('invForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const pk       = this.dataset.pk;
+  const amount   = document.getElementById('mAmount').value.trim();
+  const shares   = document.getElementById('mShares').value.trim();
+  const payInput = document.querySelector('.pay-pill input:checked');
+  const payment  = payInput ? payInput.value : 'gcash';
+
+  if (!amount || parseFloat(amount) <= 0) {
+    showToast('Please enter a valid amount greater than zero.', 'error');
+    return;
+  }
+
+  // Build form data
+  const fd = new FormData();
+  fd.append('amount',         amount);
+  fd.append('shares',         shares);
+  fd.append('payment_method', payment);
+  fd.append('csrfmiddlewaretoken',
+    document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+  // Disable submit button while loading
+  const submitBtn = this.querySelector('.inv-submit');
+  const origHTML  = submitBtn.innerHTML;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing…';
+
+  fetch(`/investments/invest/${pk}/`, {
+    method: 'POST',
+    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    body: fd,
+  })
+  .then(r => r.json())
+  .then(data => {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = origHTML;
+
+    if (data.ok) {
+      // Redirect to the payment gateway / checkout page
+      closeModal();
+      window.location.href = data.checkout_url;
+    } else {
+      const msg = data.errors
+        ? Object.values(data.errors).join(' ')
+        : (data.error || 'Something went wrong. Please try again.');
+      showToast(msg, 'error');
+    }
+  })
+  .catch(() => {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = origHTML;
+    showToast('Network error. Please check your connection and try again.', 'error');
+  });
+});
+
+// ── Inline toast notification ────────────────────────────────────
+function showToast(msg, type, receiptUrl) {
+  // Remove any existing toast
+  const old = document.getElementById('investToast');
+  if (old) old.remove();
+
+  const isSuccess = type === 'success';
+  const toast = document.createElement('div');
+  toast.id = 'investToast';
+  toast.style.cssText = `
+    position:fixed; top:1.25rem; left:50%; transform:translateX(-50%);
+    z-index:9999; min-width:320px; max-width:520px;
+    padding:14px 18px; border-radius:12px; font-size:.88rem; font-weight:600;
+    display:flex; align-items:center; gap:10px;
+    box-shadow:0 8px 24px rgba(0,0,0,.35);
+    animation:slideDown .3s ease;
+    ${isSuccess
+      ? 'background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#86efac;'
+      : 'background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#fca5a5;'}
+  `;
+
+  let inner = `<i class="fas fa-${isSuccess ? 'check-circle' : 'exclamation-circle'}"></i>
+               <span style="flex:1;">${msg}</span>`;
+  if (isSuccess && receiptUrl) {
+    inner += `<a href="${receiptUrl}" target="_blank"
+                style="margin-left:8px;padding:4px 12px;background:rgba(34,197,94,.2);
+                       border:1px solid rgba(34,197,94,.35);border-radius:7px;
+                       color:#4ade80;font-size:.78rem;font-weight:700;text-decoration:none;
+                       white-space:nowrap;">
+                <i class="fas fa-receipt me-1"></i>Receipt
+              </a>`;
+  }
+  inner += `<button onclick="this.parentElement.remove()"
+              style="background:none;border:none;color:inherit;cursor:pointer;
+                     font-size:1rem;padding:0;margin-left:4px;opacity:.6;">✕</button>`;
+  toast.innerHTML = inner;
+  document.body.appendChild(toast);
+
+  // Auto-dismiss after 7s
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.style.transition = 'opacity .5s';
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 500);
+    }
+  }, 7000);
+}
+
+// ── Live progress bar update ─────────────────────────────────────
+function updateCardProgress(pk, raised, target, pct) {
+  // Find the card whose Invest Now button has this pk
+  const btn = document.querySelector(`button[onclick*="openModal(${pk},"]`);
+  if (!btn) return;
+  const card = btn.closest('.bc-card');
+  if (!card) return;
+
+  const fill = card.querySelector('.bc-prog-fill');
+  const raisedEl = card.querySelector('.bc-prog-meta .raised');
+  const pctEl    = card.querySelector('.bc-prog-meta span:last-child');
+
+  if (fill)    fill.style.width = pct + '%';
+  if (raisedEl) raisedEl.textContent =
+    '₱' + raised.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' raised';
+  if (pctEl)   pctEl.textContent =
+    pct + '% of ₱' + target.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+// ── Keyboard close ───────────────────────────────────────────────
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-// Auto-dismiss flash after 5s
+// ── Auto-dismiss server-rendered flash messages ──────────────────
 document.querySelectorAll('.bc-flash').forEach(el => {
   setTimeout(() => {
     el.style.transition = 'opacity .5s';

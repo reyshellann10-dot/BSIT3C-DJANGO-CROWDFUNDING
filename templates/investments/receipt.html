@@ -1,176 +1,469 @@
-{% extends 'theme/base.html' %}
-{% block content %}
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Receipt #{{ inv.pk|stringformat:"06d" }} — CrowdFarmV3</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        <!-- BACK + PRINT -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="{% url 'investments:investment_detail' txn.investment.pk %}" class="btn btn-outline-secondary btn-sm">
-                <i class="fas fa-arrow-left me-1"></i> Back
-            </a>
-            <button onclick="window.print()" class="btn btn-outline-info btn-sm">
-                <i class="fas fa-print me-1"></i> Print Receipt
-            </button>
-        </div>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f1f5f9;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 3rem;
+      color: #1e293b;
+      -webkit-font-smoothing: antialiased;
+    }
 
-        <!-- RECEIPT CARD -->
-        <div class="card border-secondary" id="receiptCard"
-             style="background: #1e293b; border-radius:16px; overflow:hidden;">
+    /* ── Top action bar ── */
+    .action-bar {
+      width: 100%; max-width: 700px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+    .action-brand {
+      display: flex; align-items: center; gap: 9px; text-decoration: none;
+    }
+    .action-brand-icon {
+      width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 13px;
+      box-shadow: 0 3px 10px rgba(34,197,94,.3);
+    }
+    .action-brand-name { font-size: .95rem; font-weight: 800; color: #1e293b; }
+    .action-brand-name span { color: #f59e0b; }
+    .action-btns { display: flex; gap: 8px; }
+    .btn-back {
+      padding: 8px 16px; background: #fff;
+      border: 1.5px solid #e2e8f0; border-radius: 9px;
+      font-size: .82rem; font-weight: 600; color: #64748b;
+      text-decoration: none; cursor: pointer; font-family: inherit;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: border-color .12s, color .12s;
+    }
+    .btn-back:hover { border-color: #94a3b8; color: #1e293b; }
+    .btn-print {
+      padding: 8px 20px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      border: none; border-radius: 9px;
+      font-size: .82rem; font-weight: 700; color: #fff;
+      cursor: pointer; font-family: inherit;
+      display: inline-flex; align-items: center; gap: 7px;
+      box-shadow: 0 4px 14px rgba(34,197,94,.3);
+      transition: opacity .15s;
+    }
+    .btn-print:hover { opacity: .9; }
 
-            <!-- HEADER BAND -->
-            <div class="text-center py-4" style="background: linear-gradient(135deg, #16a34a, #0ea5e9);">
-                <i class="fas fa-leaf fa-2x text-white mb-2 d-block"></i>
-                <h3 class="text-white fw-bold mb-0">CrowdFarm</h3>
-                <small class="text-white opacity-75">Investment Receipt</small>
-            </div>
+    /* ── Receipt card ── */
+    .receipt {
+      width: 100%; max-width: 700px;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.1);
+      overflow: hidden;
+    }
 
-            <div class="card-body px-4 py-4">
+    /* ── Receipt header ── */
+    .rc-header {
+      background: linear-gradient(145deg, #071a10 0%, #0a2518 55%, #0f3320 100%);
+      padding: 2rem 2.5rem 2rem;
+      position: relative; overflow: hidden;
+    }
+    .rc-header::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%2322c55e' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    .rc-header::after {
+      content: '';
+      position: absolute; right: -60px; top: -60px;
+      width: 240px; height: 240px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,158,11,.08) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .rc-header-top {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px; position: relative; z-index: 1;
+    }
+    .rc-brand { display: flex; align-items: center; gap: 13px; }
+    .rc-brand-icon {
+      width: 48px; height: 48px; border-radius: 13px; flex-shrink: 0;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 20px;
+      box-shadow: 0 4px 16px rgba(34,197,94,.4);
+    }
+    .rc-brand-name { font-size: 1.3rem; font-weight: 800; color: #fff; line-height: 1.1; }
+    .rc-brand-name span { color: #f59e0b; }
+    .rc-brand-sub  { font-size: .68rem; color: rgba(255,255,255,.4); font-weight: 500; letter-spacing: .05em; text-transform: uppercase; margin-top: 2px; }
+    .rc-confirmed {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(34,197,94,.15); border: 1px solid rgba(34,197,94,.3);
+      color: #4ade80; border-radius: 99px; padding: 5px 15px;
+      font-size: .7rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+    }
+    .rc-confirmed i { font-size: .45rem; animation: blink 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-                <!-- STATUS BADGE -->
-                <div class="text-center mb-4">
-                    {% if txn.status == 'completed' %}
-                        <span class="badge bg-success fs-6 px-4 py-2">
-                            <i class="fas fa-check-circle me-1"></i> Payment Confirmed
-                        </span>
-                    {% elif txn.status == 'pending' %}
-                        <span class="badge bg-warning text-dark fs-6 px-4 py-2">
-                            <i class="fas fa-clock me-1"></i> Payment Pending
-                        </span>
-                    {% elif txn.status == 'failed' %}
-                        <span class="badge bg-danger fs-6 px-4 py-2">
-                            <i class="fas fa-times-circle me-1"></i> Payment Failed
-                        </span>
-                    {% elif txn.status == 'refunded' %}
-                        <span class="badge bg-secondary fs-6 px-4 py-2">
-                            <i class="fas fa-undo me-1"></i> Refunded
-                        </span>
-                    {% endif %}
-                </div>
+    .rc-title {
+      font-size: 1.55rem; font-weight: 800; color: #fff;
+      letter-spacing: -.02em; margin-top: 1.4rem; margin-bottom: 4px;
+      position: relative; z-index: 1;
+    }
+    .rc-subtitle { font-size: .82rem; color: rgba(255,255,255,.4); position: relative; z-index: 1; }
 
-                <!-- AMOUNT -->
-                <div class="text-center mb-4">
-                    <div class="text-muted small mb-1">Amount Paid</div>
-                    <div class="text-white fw-bold" style="font-size:2.5rem;">₱{{ txn.amount }}</div>
-                </div>
+    .rc-meta-strip {
+      display: flex; gap: 2.5rem; flex-wrap: wrap;
+      margin-top: 1.4rem; padding-top: 1.25rem;
+      border-top: 1px solid rgba(255,255,255,.08);
+      position: relative; z-index: 1;
+    }
+    .rc-meta-lbl { font-size: .6rem; color: rgba(255,255,255,.35); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 3px; }
+    .rc-meta-val { font-size: .9rem; font-weight: 600; color: rgba(255,255,255,.85); }
 
-                <!-- RECEIPT DETAILS -->
-                <div style="background:#0f172a; border-radius:12px; padding:1.25rem;">
-                    <div class="row g-0">
+    /* ── Zigzag divider ── */
+    .rc-zigzag {
+      position: relative; height: 24px; background: #fff;
+      overflow: hidden;
+    }
+    .rc-zigzag::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 24px;
+      background:
+        radial-gradient(circle at 10px 0, #fff 10px, transparent 10px),
+        radial-gradient(circle at 10px 0, #0a2518 11px, transparent 11px);
+      background-size: 20px 24px;
+      background-position: 0 0, 0 0;
+    }
 
-                        <div class="col-12 d-flex justify-content-between py-2" style="border-bottom:1px solid #334155;">
-                            <span class="text-muted">Reference #</span>
-                            <code class="text-info fw-bold">{{ txn.reference_number|default:'—' }}</code>
-                        </div>
+    /* ── Receipt body ── */
+    .rc-body { padding: 2rem 2.5rem; }
 
-                        <div class="col-12 d-flex justify-content-between py-2" style="border-bottom:1px solid #334155;">
-                            <span class="text-muted">Transaction ID</span>
-                            <span class="text-white">#{{ txn.pk }}</span>
-                        </div>
+    .rc-section { margin-bottom: 1.75rem; }
+    .rc-section-title {
+      font-size: .66rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: #94a3b8; display: flex; align-items: center; gap: 8px;
+      padding-bottom: 10px; border-bottom: 2px solid #f1f5f9; margin-bottom: 14px;
+    }
+    .rc-section-title i { color: #22c55e; }
 
-                        <div class="col-12 d-flex justify-content-between py-2" style="border-bottom:1px solid #334155;">
-                            <span class="text-muted">Date & Time</span>
-                            <span class="text-white">{{ txn.created_at|date:"F d, Y — g:i A" }}</span>
-                        </div>
+    .rc-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px;
+    }
+    @media (max-width: 500px) { .rc-grid { grid-template-columns: 1fr; } }
 
-                        <div class="col-12 d-flex justify-content-between py-2" style="border-bottom:1px solid #334155;">
-                            <span class="text-muted">Payment Method</span>
-                            <span class="text-white">
-                                {% if txn.payment_method == 'gcash' %}
-                                    <i class="fas fa-mobile-alt text-primary me-1"></i>GCash
-                                {% elif txn.payment_method == 'bank_transfer' %}
-                                    <i class="fas fa-university me-1"></i>Bank Transfer
-                                {% elif txn.payment_method == 'maya' %}
-                                    <i class="fas fa-wallet text-info me-1"></i>Maya
-                                {% elif txn.payment_method == 'check' %}
-                                    <i class="fas fa-file-invoice text-warning me-1"></i>Check
-                                {% else %}
-                                    <i class="fas fa-money-bill-wave text-success me-1"></i>Cash
-                                {% endif %}
-                            </span>
-                        </div>
+    .rc-field-lbl { font-size: .7rem; color: #94a3b8; font-weight: 500; margin-bottom: 3px; }
+    .rc-field-val { font-size: .9rem; font-weight: 600; color: #1e293b; }
 
-                        <!-- INVESTOR -->
-                        <div class="col-12 py-3" style="border-bottom:1px solid #334155;">
-                            <div class="text-muted small mb-2">Investor</div>
-                            <div class="d-flex align-items-center gap-2">
-                                <div style="width:38px;height:38px;border-radius:50%;background:#334155;display:flex;align-items:center;justify-content:center;">
-                                    <span class="text-white fw-bold">{{ txn.investment.investor.name|first|upper }}</span>
-                                </div>
-                                <div>
-                                    <div class="text-white fw-bold">{{ txn.investment.investor.name }}</div>
-                                    {% if txn.investment.investor.contact %}
-                                    <small class="text-muted">{{ txn.investment.investor.contact }}</small>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
+    /* ── Totals box ── */
+    .rc-totals {
+      background: #f8fafc; border: 1.5px solid #e2e8f0;
+      border-radius: 13px; padding: 1.25rem 1.5rem;
+      margin-bottom: 1.75rem;
+    }
+    .rc-totals-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 1px dashed #e2e8f0;
+    }
+    .rc-totals-row:last-child { border-bottom: none; padding-top: 12px; margin-top: 4px; }
+    .rc-totals-lbl { font-size: .85rem; color: #64748b; }
+    .rc-totals-val { font-size: .9rem; font-weight: 600; color: #1e293b; }
+    .rc-totals-row.grand .rc-totals-lbl { font-size: .95rem; font-weight: 700; color: #1e293b; }
+    .rc-totals-row.grand .rc-totals-val { font-size: 1.15rem; font-weight: 800; color: #16a34a; }
 
-                        <!-- CAMPAIGN -->
-                        <div class="col-12 py-3" style="border-bottom:1px solid #334155;">
-                            <div class="text-muted small mb-2">Campaign / Project</div>
-                            <div class="text-white fw-bold">{{ txn.investment.project.title }}</div>
-                            {% if txn.investment.project.farmer_name %}
-                            <small class="text-muted"><i class="fas fa-user-tie me-1"></i>{{ txn.investment.project.farmer_name }}</small>
-                            {% endif %}
-                            {% if txn.investment.project.location %}
-                            <small class="text-muted ms-2"><i class="fas fa-map-marker-alt me-1"></i>{{ txn.investment.project.location }}</small>
-                            {% endif %}
-                        </div>
+    /* payment badge */
+    .rc-pay-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 13px; border-radius: 99px; font-size: .78rem; font-weight: 700;
+      background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.22); color: #16a34a;
+    }
 
-                        <!-- INVESTMENT SUMMARY -->
-                        <div class="col-12 py-3">
-                            <div class="text-muted small mb-2">Investment Summary</div>
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Principal</span>
-                                <span class="text-white">₱{{ txn.investment.amount }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Shares</span>
-                                <span class="text-white">{{ txn.investment.shares }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Expected Profit ({{ txn.investment.project.profit_rate }}%)</span>
-                                <span class="text-success">₱{{ txn.investment.profit }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between pt-2 fw-bold" style="border-top:1px solid #334155;">
-                                <span class="text-white">Expected Total Return</span>
-                                <span class="text-info">₱{{ txn.investment.total_return }}</span>
-                            </div>
-                        </div>
+    /* ── Footer ── */
+    .rc-footer {
+      background: #f8fafc; border-top: 1px solid #e2e8f0;
+      padding: 1.1rem 2.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px;
+    }
+    .rc-footer p { font-size: .74rem; color: #94a3b8; }
+    .rc-footer strong { color: #64748b; }
+    .rc-verified {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: .72rem; color: #22c55e; font-weight: 700;
+    }
 
-                    </div>
-                </div>
+    /* ── Print styles ── */
+    @media print {
+      body { background: #fff; padding: 0; }
+      .action-bar { display: none !important; }
+      .receipt { box-shadow: none; border-radius: 0; max-width: 100%; }
+      .rc-header,
+      .rc-totals { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
 
-                <!-- NOTES -->
-                {% if txn.investment.notes %}
-                <div class="mt-3 p-3 rounded" style="background:#0f172a; border-left:4px solid #0ea5e9;">
-                    <small class="text-muted d-block mb-1">Investor Note</small>
-                    <p class="text-white mb-0 small" style="white-space:pre-wrap;">{{ txn.investment.notes }}</p>
-                </div>
-                {% endif %}
-
-                <!-- FOOTER NOTE -->
-                <div class="text-center mt-4 text-muted small">
-                    <i class="fas fa-shield-alt me-1"></i>
-                    This is an official receipt from CrowdFarm.
-                    Please keep this for your records.
-                </div>
-
-            </div>
-        </div><!-- /receipt card -->
-
-    </div>
+<!-- Action bar (hidden when printing) -->
+<div class="action-bar">
+  <a class="action-brand" href="javascript:history.back()">
+    <div class="action-brand-icon"><i class="fas fa-leaf"></i></div>
+    <span class="action-brand-name">CrowdFarm<span>V3</span></span>
+  </a>
+  <div class="action-btns">
+    <a href="javascript:history.back()" class="btn-back">
+      <i class="fas fa-arrow-left"></i> Back
+    </a>
+    <button class="btn-print" onclick="window.print()">
+      <i class="fas fa-print"></i> Print / Save PDF
+    </button>
+  </div>
 </div>
 
-<style>
-@media print {
-    .btn, .navbar-vertical, .page-header { display: none !important; }
-    body { background: #fff !important; color: #000 !important; }
-    #receiptCard { border: 1px solid #ccc !important; background: #fff !important; }
-    #receiptCard * { color: #000 !important; }
-    code { background: #f0f0f0 !important; }
-}
-</style>
+<!-- ══ RECEIPT ══ -->
+<div class="receipt">
 
-{% endblock %}
+  <!-- Header -->
+  <div class="rc-header">
+    <div class="rc-header-top">
+      <div class="rc-brand">
+        <div class="rc-brand-icon"><i class="fas fa-leaf"></i></div>
+        <div>
+          <div class="rc-brand-name">CrowdFarm<span>V3</span></div>
+          <div class="rc-brand-sub">Agricultural Crowdfunding Platform</div>
+        </div>
+      </div>
+      {% if inv.status == 'pending_verification' %}
+        <span class="rc-confirmed" style="background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.35);color:#fbbf24;">
+          <i class="fas fa-clock"></i> Pending Verification
+        </span>
+      {% elif inv.status == 'rejected' %}
+        <span class="rc-confirmed" style="background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.35);color:#f87171;">
+          <i class="fas fa-times-circle"></i> Rejected
+        </span>
+      {% else %}
+        <span class="rc-confirmed"><i class="fas fa-circle"></i> Confirmed</span>
+      {% endif %}
+    </div>
+
+    <div class="rc-title">Official Investment Receipt</div>
+    <div class="rc-subtitle">Please keep this receipt for your records.</div>
+
+    <div class="rc-meta-strip">
+      <div>
+        <div class="rc-meta-lbl">Receipt No.</div>
+        <div class="rc-meta-val">#{{ inv.pk|stringformat:"06d" }}</div>
+      </div>
+      <div>
+        <div class="rc-meta-lbl">Date</div>
+        <div class="rc-meta-val">{{ inv.created_at|date:"F j, Y" }}</div>
+      </div>
+      <div>
+        <div class="rc-meta-lbl">Time</div>
+        <div class="rc-meta-val">{{ inv.created_at|date:"g:i A" }}</div>
+      </div>
+      <div>
+        <div class="rc-meta-lbl">Payment Via</div>
+        <div class="rc-meta-val">{{ inv.get_payment_method_display }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zigzag edge -->
+  <div class="rc-zigzag"></div>
+
+  <!-- Body -->
+  <div class="rc-body">
+
+    <!-- Investor Details -->
+    <div class="rc-section">
+      <div class="rc-section-title">
+        <i class="fas fa-user-circle"></i> Investor Information
+      </div>
+      <div class="rc-grid">
+        <div>
+          <div class="rc-field-lbl">Full Name</div>
+          <div class="rc-field-val">{{ inv.investor.name }}</div>
+        </div>
+        <div>
+          <div class="rc-field-lbl">Contact</div>
+          <div class="rc-field-val">{{ inv.investor.contact|default:"—" }}</div>
+        </div>
+        <div>
+          <div class="rc-field-lbl">Address</div>
+          <div class="rc-field-val">{{ inv.investor.address|default:"—" }}</div>
+        </div>
+        <div>
+          <div class="rc-field-lbl">Payment Method</div>
+          <div class="rc-field-val">
+            <span class="rc-pay-badge">
+              {% if inv.payment_method == 'gcash' %}<i class="fas fa-mobile-alt"></i>
+              {% elif inv.payment_method == 'paymaya' %}<i class="fas fa-wallet"></i>
+              {% elif inv.payment_method == 'bank_transfer' %}<i class="fas fa-university"></i>
+              {% elif inv.payment_method == 'paypal' %}<i class="fab fa-paypal"></i>
+              {% endif %}
+              {{ inv.get_payment_method_display }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project Details -->
+    <div class="rc-section">
+      <div class="rc-section-title">
+        <i class="fas fa-seedling"></i> Campaign / Project Details
+      </div>
+      <div class="rc-grid">
+        <div>
+          <div class="rc-field-lbl">Campaign Title</div>
+          <div class="rc-field-val">{{ inv.project.title }}</div>
+        </div>
+        <div>
+          <div class="rc-field-lbl">Farmer Name</div>
+          <div class="rc-field-val">{{ inv.project.farmer_name|default:"—" }}</div>
+        </div>
+        <div>
+          <div class="rc-field-lbl">Crop Type</div>
+          <div class="rc-field-val">{{ inv.project.crop_type|default:"—" }}</div>
+        </div>
+        <div>
+          <div class="rc-field-lbl">Location</div>
+          <div class="rc-field-val">{{ inv.project.location|default:"—" }}</div>
+        </div>
+        <div>
+          <div class="rc-field-lbl">Campaign Period</div>
+          <div class="rc-field-val">{{ inv.project.start_date|date:"M j, Y" }} — {{ inv.project.end_date|date:"M j, Y" }}</div>
+        </div>
+        <div>
+          <div class="rc-field-lbl">Campaign Status</div>
+          <div class="rc-field-val">{{ inv.project.status|title }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Investment Details -->
+    <div class="rc-section">
+      <div class="rc-section-title">
+        <i class="fas fa-coins"></i> Investment Details
+      </div>
+      <div class="rc-grid">
+        <div>
+          <div class="rc-field-lbl">Amount Invested</div>
+          <div class="rc-field-val" style="font-size:1.05rem;font-weight:800;color:#d97706;">
+            ₱{{ inv.amount|floatformat:"2g" }}
+          </div>
+        </div>
+        <div>
+          <div class="rc-field-lbl">Number of Shares</div>
+          <div class="rc-field-val">{{ inv.shares }} share{{ inv.shares|pluralize }}</div>
+        </div>
+        <div>
+          <div class="rc-field-lbl">Share Percentage</div>
+          <div class="rc-field-val">{{ inv.share_percentage }}% of project</div>
+        </div>
+        <div>
+          <div class="rc-field-lbl">Profit Rate</div>
+          <div class="rc-field-val">{{ inv.project.profit_rate }}% per harvest</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bank transfer verification details (shown only when applicable) -->
+    {% if inv.payment_method == 'bank_transfer' %}
+    <div class="rc-section">
+      <div class="rc-section-title">
+        <i class="fas fa-university"></i> Transfer Verification Details
+      </div>
+      <div class="rc-grid">
+        <div>
+          <div class="rc-field-lbl">Sender / Account Name</div>
+          <div class="rc-field-val">{{ inv.sender_name|default:"—" }}</div>
+        </div>
+        <div>
+          <div class="rc-field-lbl">Reference / Transaction No.</div>
+          <div class="rc-field-val" style="font-family:monospace;color:#d97706;">
+            {{ inv.reference_number|default:"—" }}
+          </div>
+        </div>
+        <div>
+          <div class="rc-field-lbl">Verification Status</div>
+          <div class="rc-field-val">
+            {% if inv.status == 'pending_verification' %}
+              <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;
+                           background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);
+                           border-radius:99px;font-size:.75rem;font-weight:700;color:#fbbf24;">
+                <i class="fas fa-clock" style="font-size:.6rem;"></i> Pending Admin Review
+              </span>
+            {% elif inv.status == 'confirmed' %}
+              <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;
+                           background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);
+                           border-radius:99px;font-size:.75rem;font-weight:700;color:#4ade80;">
+                <i class="fas fa-check-circle" style="font-size:.6rem;"></i> Verified
+              </span>
+            {% else %}
+              <span style="color:#94a3b8;">{{ inv.get_status_display }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% if inv.status == 'pending_verification' %}
+      <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.18);
+                  border-radius:9px;padding:11px 14px;font-size:.8rem;color:#fbbf24;
+                  display:flex;align-items:flex-start;gap:8px;margin-top:14px;line-height:1.55;">
+        <i class="fas fa-info-circle" style="margin-top:2px;flex-shrink:0;"></i>
+        <span>
+          Your payment is now <strong>pending admin verification</strong>.
+          Our team will review your bank transfer details and confirm it
+          within 1–2 business days. You will be notified once approved.
+        </span>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Totals -->
+    <div class="rc-totals">
+      <div class="rc-totals-row">
+        <span class="rc-totals-lbl">Principal Amount</span>
+        <span class="rc-totals-val">₱{{ inv.amount|floatformat:"2g" }}</span>
+      </div>
+      <div class="rc-totals-row">
+        <span class="rc-totals-lbl">
+          Estimated Profit
+          <span style="font-size:.72rem;color:#94a3b8;margin-left:4px;">({{ inv.project.profit_rate }}% rate)</span>
+        </span>
+        <span class="rc-totals-val" style="color:#16a34a;">+ ₱{{ inv.profit|floatformat:"2g" }}</span>
+      </div>
+      <div class="rc-totals-row grand">
+        <span class="rc-totals-lbl">Total Estimated Return</span>
+        <span class="rc-totals-val">₱{{ inv.total_return|floatformat:"2g" }}</span>
+      </div>
+    </div>
+
+  </div><!-- /rc-body -->
+
+  <!-- Footer -->
+  <div class="rc-footer">
+    <div>
+      <p><strong>CrowdFarmV3</strong> — Agricultural Crowdfunding Platform · Philippines</p>
+      <p style="margin-top:2px;">This is a system-generated receipt. No physical signature required.</p>
+    </div>
+    <span class="rc-verified"><i class="fas fa-shield-alt"></i> Verified Transaction</span>
+  </div>
+
+</div><!-- /receipt -->
+
+</body>
+</html>

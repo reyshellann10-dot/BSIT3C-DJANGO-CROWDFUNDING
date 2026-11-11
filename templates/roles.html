@@ -1,0 +1,62 @@
+{% extends 'public_base.html' %}
+
+{% block title %}Three Roles, One Platform — CrowdFarmV3{% endblock %}
+
+{% block content %}
+<!-- ══ PAGE HERO ══ -->
+<section class="hero page-hero">
+  <div class="hero-inner">
+    <div class="section-label" style="margin-bottom:16px;"><i class="fas fa-users"></i> Who Is It For?</div>
+    <h1>Three Roles, One Platform</h1>
+    <p class="section-sub">CrowdFarmV3 serves farmers, investors, and administrators with distinct, role-specific experiences.</p>
+  </div>
+</section>
+
+<!-- ══ ROLES ══ -->
+<section style="padding-top:1rem;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="section-inner">
+    <div class="roles-grid">
+
+      <div class="role-card farmer">
+        <div class="role-card-icon"><i class="fas fa-tractor"></i></div>
+        <div class="role-tag"><i class="fas fa-leaf"></i> Farmer</div>
+        <h3>For Farmers &amp; Creators</h3>
+        <p>Raise funds for your agricultural campaigns directly from investors. Submit your crop plan, get verified, and start collecting investments.</p>
+        <ul class="role-features">
+          <li><i class="fas fa-check-circle"></i> Submit and manage campaigns</li>
+          <li><i class="fas fa-check-circle"></i> Upload verification documents</li>
+          <li><i class="fas fa-check-circle"></i> Track funding progress</li>
+          <li><i class="fas fa-check-circle"></i> Receive investment funds</li>
+        </ul>
+      </div>
+
+      <div class="role-card investor">
+        <div class="role-card-icon"><i class="fas fa-coins"></i></div>
+        <div class="role-tag"><i class="fas fa-chart-line"></i> Investor</div>
+        <h3>For Investors</h3>
+        <p>Browse verified campaigns, invest your money, and earn profit returns when farmers harvest. Full transparency on every peso invested.</p>
+        <ul class="role-features">
+          <li><i class="fas fa-check-circle"></i> Browse active campaigns</li>
+          <li><i class="fas fa-check-circle"></i> Invest via GCash, Maya, or Bank</li>
+          <li><i class="fas fa-check-circle"></i> Track investment portfolio</li>
+          <li><i class="fas fa-check-circle"></i> Earn competitive profit returns</li>
+        </ul>
+      </div>
+
+      <div class="role-card admin">
+        <div class="role-card-icon"><i class="fas fa-shield-halved"></i></div>
+        <div class="role-tag"><i class="fas fa-crown"></i> Admin</div>
+        <h3>For Administrators</h3>
+        <p>Full system oversight — verify campaigns, manage users, track all investments, and maintain platform integrity.</p>
+        <ul class="role-features">
+          <li><i class="fas fa-check-circle"></i> Verify and approve campaigns</li>
+          <li><i class="fas fa-check-circle"></i> Manage all users</li>
+          <li><i class="fas fa-check-circle"></i> View system-wide analytics</li>
+          <li><i class="fas fa-check-circle"></i> Access full audit trail</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endblock %}
